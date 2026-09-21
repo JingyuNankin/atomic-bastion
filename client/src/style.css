@@ -1,0 +1,49 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #0b0f14;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.play-back {
+  appearance: none;
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1;
+  padding: 8px 12px;
+  border: 1px solid rgba(138, 164, 184, 0.5);
+  background: rgba(11, 15, 20, 0.72);
+  color: #c5d4e0;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.play-back:hover,
+.play-back:focus-visible {
+  color: #e8f4ff;
+  border-color: #7ec8ff;
+  outline: none;
+}
+
+.play-back[hidden] {
+  display: none;
+}

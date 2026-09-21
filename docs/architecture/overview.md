@@ -20,8 +20,10 @@ shared：武器 / 敌人 / 方向等常量与类型，避免前后端各写一�
 ## 客户端
 
 - 游戏本体在 Canvas 中更新与绘制，不依赖 DOM 作为战斗场景
+- 首页菜单用 DOM 叠在 Canvas 上；战斗场景仍走 Canvas
 - `game/` 负责循环与世界；`systems/` 负责输入、碰撞、生成；`entities/` 与 `weapons/` 为数据与行为
-- 语言、打包工具、是否使用游戏框架：待定
+- 语言与打包：TypeScript + Vite；不使用游戏引擎框架
+- 一期用 `npm run build` 产出静态网页（`dist/`）给玩家试玩，不依赖后端
 
 ## 服务端
 

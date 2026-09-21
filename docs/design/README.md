@@ -5,6 +5,7 @@
 | 文件 | 内容 |
 | --- | --- |
 | [overview.md](overview.md) | 定位、核心循环、一期范围 |
+| [modes.md](modes.md) | 生存 / 保卫 / 收集 |
 | [combat.md](combat.md) | 移动、8 向射击、命中与击退 |
 | [enemies.md](enemies.md) | 敌人类别（预计 3–5 种） |
 | [weapons.md](weapons.md) | 武器类别（预计 5–10 种） |

@@ -1,0 +1,18 @@
+{
+  "name": "atomic-bastion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Atomic Bastion / 原子堡垒 — 2D canvas shooting game",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3"
+  }
+}

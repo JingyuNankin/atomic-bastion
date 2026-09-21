@@ -16,6 +16,7 @@ dist/
 build/
 out/
 .cache/
+.vite/
 
 # Env / secrets
 .env
