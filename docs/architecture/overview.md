@@ -24,6 +24,7 @@ shared：武器 / 敌人 / 方向等常量与类型，避免前后端各写一�
 - `game/` 负责循环与世界；`systems/` 负责输入、碰撞、生成；`entities/` 与 `weapons/` 为数据与行为
 - 语言与打包：TypeScript + Vite；不使用游戏引擎框架
 - 一期用 `npm run build` 产出静态网页（`dist/`）给玩家试玩，不依赖后端
+- 图像草稿在 `assets/`；游戏用图在 `client/public/img/`，构建后为 `dist/img/`
 
 ## 服务端
 

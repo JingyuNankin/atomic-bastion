@@ -57,6 +57,23 @@ npx --yes serve dist
 
 不要直接双击 `dist/index.html`：打包后的 ES 模块在 `file://` 下通常无法运行。
 
+## 图像资源
+
+图像分两个目录，不要混放。
+
+| 目录 | 用途 | 是否发给玩家 |
+| --- | --- | --- |
+| [`assets/`](assets/) | **草稿**：概念图、AI 稿、PSD、未切片原图 | 否，不进 `dist/` |
+| [`client/public/img/`](client/public/img/) | **正式图**：游戏实际加载的 PNG 等 | 是，`npm run build` 后出现在 `dist/img/` |
+
+选用 `img` 而不是 `assets` / `static` / `source`：
+
+- 仓库根目录已经占用 `assets/` 表示草稿
+- Vite 打包出的 JS/CSS 在 `dist/assets/`，与游戏图不是一回事
+- `client/public/` 下的文件会原样拷到 `dist/`，Canvas 用相对路径 `./img/...` 即可加载（配合 `base: './'`）
+
+定稿流程：在 `assets/` 里画 / 生成 → 切出游戏用图 → 放入 `client/public/img/` 的对应子目录（`sprites/`、`tiles/`、`ui/`）。代码不要引用 `assets/`。
+
 ## 目录结构
 
 ```
@@ -66,7 +83,8 @@ atomic-bastion/
 ├── dist/                   # npm run build 产物（不入库）
 ├── client/                 # 前端：Canvas 游戏本体
 │   ├── index.html          # 页面入口
-│   ├── public/             # 不经打包的公开资源
+│   ├── public/
+│   │   └── img/            # 前端正式图像（构建后 → dist/img/）
 │   └── src/
 │       ├── game/           # 主循环、相机、世界
 │       ├── entities/       # 玩家、敌人、子弹等实体
@@ -85,7 +103,7 @@ atomic-bastion/
 │   └── src/
 │       ├── constants/
 │       └── types/
-├── assets/                 # 原始美术 / 音频资源（非运行时）
+├── assets/                 # 图像 / 音频草稿（不打包）
 │   ├── sprites/
 │   ├── tiles/
 │   ├── ui/

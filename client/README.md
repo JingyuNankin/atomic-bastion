@@ -10,7 +10,8 @@ npm run build    # 静态网页 → ../dist/
 ```
 client/
 ├── index.html       # Vite 入口
-├── public/          # favicon 等不经打包的资源
+├── public/
+│   └── img/         # 正式图像（构建后 → dist/img/）
 └── src/
     ├── main.ts      # 启动入口
     ├── game/        # 主循环、相机、世界
