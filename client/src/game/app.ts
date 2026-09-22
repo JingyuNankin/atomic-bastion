@@ -1,5 +1,7 @@
-import { drawMenuBackdrop, drawPlayScene } from '../scenes/play';
+import { createPlayWorld, drawMenuBackdrop } from '../scenes/play';
 import { mountMenu } from '../scenes/menu';
+import { createInput } from '../systems/input';
+import { loadPlayerSheet } from '../systems/player-sheet';
 
 type SceneId = 'menu' | 'play';
 
@@ -15,6 +17,18 @@ export function startGame(root: HTMLElement): void {
   syncCanvasSize(canvas);
 
   let scene: SceneId = 'menu';
+  let lastTime = 0;
+
+  const world = createPlayWorld();
+  const input = createInput();
+
+  void loadPlayerSheet()
+    .then((sheet) => {
+      world.setSheet(sheet);
+    })
+    .catch((error: unknown) => {
+      console.error(error);
+    });
 
   const backButton = document.createElement('button');
   backButton.type = 'button';
@@ -29,10 +43,23 @@ export function startGame(root: HTMLElement): void {
     },
   });
 
+  function viewSize(): { width: number; height: number; dpr: number } {
+    const width = Math.max(1, canvas.clientWidth);
+    const height = Math.max(1, canvas.clientHeight);
+    const dpr = canvas.width / width;
+
+    return { width, height, dpr };
+  }
+
   function setScene(next: SceneId): void {
     scene = next;
     menu.setVisible(next === 'menu');
     backButton.hidden = next !== 'play';
+
+    if (next === 'play') {
+      const { width, height } = viewSize();
+      world.enter(width, height);
+    }
   }
 
   backButton.addEventListener('click', () => {
@@ -41,6 +68,11 @@ export function startGame(root: HTMLElement): void {
 
   const onResize = () => {
     syncCanvasSize(canvas);
+
+    if (scene === 'play') {
+      const { width, height } = viewSize();
+      world.update(0, { x: 0, y: 0 }, width, height);
+    }
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -54,10 +86,17 @@ export function startGame(root: HTMLElement): void {
   window.addEventListener('keydown', onKeyDown);
 
   const frame = (time: number) => {
+    const dt = lastTime === 0 ? 0 : Math.min(0.05, (time - lastTime) / 1000);
+    lastTime = time;
+    const { width, height, dpr } = viewSize();
+
     if (scene === 'menu') {
       drawMenuBackdrop(context, canvas.width, canvas.height, time);
     } else {
-      drawPlayScene(context, canvas.width, canvas.height, time);
+      world.update(dt, input.axis(), width, height);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      world.draw(context, width, height, time);
+      context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     window.requestAnimationFrame(frame);
