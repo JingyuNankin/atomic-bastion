@@ -1,6 +1,6 @@
 import { playerBoxes, type Box, type Rgb } from './player-model';
 
-type Mesh = {
+export type Mesh = {
   positions: Float32Array;
   colors: Float32Array;
 };
@@ -9,11 +9,11 @@ const LIGHT = normalize([0.35, 0.82, 0.44]);
 const AMBIENT = 0.42;
 const DIFFUSE = 0.58;
 
-export function buildPlayerMesh(): Mesh {
+export function buildBoxMesh(boxes: Box[]): Mesh {
   const positions: number[] = [];
   const colors: number[] = [];
 
-  for (const box of playerBoxes()) {
+  for (const box of boxes) {
     pushBox(positions, colors, box);
   }
 
@@ -21,6 +21,10 @@ export function buildPlayerMesh(): Mesh {
     positions: new Float32Array(positions),
     colors: new Float32Array(colors),
   };
+}
+
+export function buildPlayerMesh(): Mesh {
+  return buildBoxMesh(playerBoxes());
 }
 
 function pushBox(positions: number[], colors: number[], box: Box): void {

@@ -72,7 +72,7 @@ npx --yes serve dist
 - Vite 打包出的 JS/CSS 在 `dist/assets/`，与游戏图不是一回事
 - `client/public/` 下的文件会原样拷到 `dist/`，Canvas 用相对路径 `./img/...` 即可加载（配合 `base: './'`）
 
-玩家角色不再加载位图：用 **WebGL 正交方块模型** 在运行时烘焙八向图（45° 俯视、无透视）。预览 / 导出：开发时打开 `http://127.0.0.1:5173/tools/player-sheet.html`。
+玩家与武器不再加载位图：用 **WebGL 正交方块模型** 在运行时烘焙八向图（45° 俯视、无透视），武器图层按朝向叠到手上。预览 / 导出：开发时打开 `http://127.0.0.1:5173/tools/player-sheet.html`。
 
 其它图像仍按「草稿 → 正式图」：在 `assets/` 里画 / 生成 → 切出游戏用图 → 放入 `client/public/img/`。代码不要引用 `assets/`。
 

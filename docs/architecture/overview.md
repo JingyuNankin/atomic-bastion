@@ -25,7 +25,7 @@ shared：武器 / 敌人 / 方向等常量与类型，避免前后端各写一�
 - 语言与打包：TypeScript + Vite；不使用游戏引擎框架
 - 一期用 `npm run build` 产出静态网页（`dist/`）给玩家试玩，不依赖后端
 - 图像草稿在 `assets/`；游戏用图在 `client/public/img/`，构建后为 `dist/img/`
-- 玩家八向图由 WebGL 正交烘焙生成（`client/src/render/`），不读 PNG 位图
+- 玩家与武器八向图由 WebGL 正交烘焙生成（`client/src/render/`），不读 PNG 位图；武器按朝向叠到手上
 
 ## 服务端
 

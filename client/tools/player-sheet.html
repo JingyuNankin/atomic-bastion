@@ -18,16 +18,40 @@
         padding: 24px;
       }
 
+      #gallery {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: flex-start;
+      }
+
+      figure {
+        margin: 0;
+      }
+
+      figcaption {
+        margin-bottom: 8px;
+        color: #8aa4b8;
+      }
+
       canvas {
         display: block;
         image-rendering: pixelated;
         background: #2a3038;
+      }
+
+      canvas.sheet {
         width: 336px;
         height: 432px;
       }
 
+      canvas.sprite {
+        width: 64px;
+        height: 64px;
+      }
+
       button {
-        margin-top: 16px;
+        margin-top: 12px;
         padding: 8px 14px;
         border: 1px solid #7ec8ff;
         background: rgba(126, 200, 255, 0.1);
@@ -39,10 +63,9 @@
   </head>
   <body>
     <main>
-      <p>WebGL 正交烘焙 · 八向持枪姿势 · 透明底</p>
+      <p>WebGL 正交烘焙 · 角色与武器共用相机与格尺寸 · 透明底</p>
       <p id="status"></p>
-      <canvas id="sheet" width="168" height="216"></canvas>
-      <button type="button" id="download">下载 PNG 到本地</button>
+      <div id="gallery"></div>
     </main>
     <script type="module" src="/src/tools/player-sheet-main.ts"></script>
   </body>

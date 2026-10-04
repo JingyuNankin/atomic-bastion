@@ -1,20 +1,24 @@
 import {
   createPlayer,
   drawPlayer,
+  equipWeapon,
   updatePlayer,
   type Arena,
   type Player,
 } from '../entities/player';
 import type { Axis } from '../game/direction';
-import type { PlayerSheet } from '../systems/player-sheet';
+import { getWeaponArt, type GameArt } from '../systems/game-art';
+import { drawWeaponHud } from '../ui/hud';
+import { DEFAULT_WEAPON_ID, getWeapon, type WeaponId } from '../weapons/catalog';
 
 const BACKGROUND = '#0b0f14';
 const ARENA_FILL = '#121820';
 const ARENA_INSET = 48;
 
 export type PlayWorld = {
-  setSheet: (sheet: PlayerSheet) => void;
+  setArt: (art: GameArt) => void;
   enter: (width: number, height: number) => void;
+  equip: (weaponId: WeaponId) => void;
   update: (dt: number, axis: Axis, width: number, height: number) => void;
   draw: (
     context: CanvasRenderingContext2D,
@@ -25,7 +29,7 @@ export type PlayWorld = {
 };
 
 export function createPlayWorld(): PlayWorld {
-  let sheet: PlayerSheet | null = null;
+  let art: GameArt | null = null;
   const player: Player = createPlayer(0, 0);
 
   const arenaOf = (width: number, height: number): Arena => ({
@@ -36,17 +40,22 @@ export function createPlayWorld(): PlayWorld {
   });
 
   return {
-    setSheet(next) {
-      sheet = next;
+    setArt(next) {
+      art = next;
     },
     enter(width, height) {
       player.x = width / 2;
       player.y = height / 2;
       player.facing = 's';
-      updatePlayer(player, 0, { x: 0, y: 0 }, arenaOf(width, height), sheet);
+      equipWeapon(player, DEFAULT_WEAPON_ID);
+      updatePlayer(player, 0, { x: 0, y: 0 }, arenaOf(width, height));
+    },
+    equip(weaponId) {
+      getWeapon(weaponId);
+      equipWeapon(player, weaponId);
     },
     update(dt, axis, width, height) {
-      updatePlayer(player, dt, axis, arenaOf(width, height), sheet);
+      updatePlayer(player, dt, axis, arenaOf(width, height));
     },
     draw(context, width, height, time) {
       context.fillStyle = BACKGROUND;
@@ -80,13 +89,20 @@ export function createPlayWorld(): PlayWorld {
         arena.bottom - arena.top - 2,
       );
 
-      drawPlayer(context, player, sheet);
+      drawPlayer(context, player, art);
+      drawWeaponHud(
+        context,
+        height,
+        player.weaponId,
+        player.ammoInMag,
+        getWeaponArt(art, player.weaponId)?.icon ?? null,
+      );
 
       context.textAlign = 'right';
       context.textBaseline = 'top';
       context.fillStyle = '#8aa4b8';
       context.font = '13px ui-sans-serif, system-ui, sans-serif';
-      context.fillText('生存模式 · WASD 移动', width - 16, 16);
+      context.fillText('生存模式 · WASD 移动 · 1/2 切枪', width - 16, 16);
     },
   };
 }

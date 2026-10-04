@@ -8,5 +8,6 @@
 | [modes.md](modes.md) | 生存 / 保卫 / 收集 |
 | [combat.md](combat.md) | 移动、8 向射击、命中与击退 |
 | [enemies.md](enemies.md) | 敌人类别（预计 3–5 种） |
-| [weapons.md](weapons.md) | 武器类别（预计 5–10 种） |
+| [weapons.md](weapons.md) | 手枪 / 冲锋枪策划 |
+| [weapons.json](weapons.json) | 武器数值表 |
 | [systems.md](systems.md) | HP、货币、掉落等待定系统 |

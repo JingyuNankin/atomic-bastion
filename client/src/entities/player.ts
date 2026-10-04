@@ -1,13 +1,19 @@
+import { PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
 import { axisToDirection, type Axis, type Direction } from '../game/direction';
-import type { PlayerSheet } from '../systems/player-sheet';
+import type { GameArt } from '../systems/game-art';
+import { DEFAULT_WEAPON_ID, getWeapon, type WeaponId } from '../weapons/catalog';
 
 export const PLAYER_SPEED = 200;
 export const PLAYER_DISPLAY_HEIGHT = 96;
+
+const WEAPON_BEHIND = new Set<Direction>(['n', 'nw', 'ne']);
 
 export type Player = {
   x: number;
   y: number;
   facing: Direction;
+  weaponId: WeaponId;
+  ammoInMag: number;
 };
 
 export type Arena = {
@@ -18,7 +24,18 @@ export type Arena = {
 };
 
 export function createPlayer(x: number, y: number): Player {
-  return { x, y, facing: 's' };
+  return {
+    x,
+    y,
+    facing: 's',
+    weaponId: DEFAULT_WEAPON_ID,
+    ammoInMag: getWeapon(DEFAULT_WEAPON_ID).magazineSize,
+  };
+}
+
+export function equipWeapon(player: Player, weaponId: WeaponId): void {
+  player.weaponId = weaponId;
+  player.ammoInMag = getWeapon(weaponId).magazineSize;
 }
 
 export function updatePlayer(
@@ -26,7 +43,6 @@ export function updatePlayer(
   dt: number,
   axis: Axis,
   arena: Arena,
-  sheet: PlayerSheet | null,
 ): void {
   const { x: ax, y: ay } = axis;
 
@@ -42,43 +58,57 @@ export function updatePlayer(
     player.y += (ay / length) * PLAYER_SPEED * dt;
   }
 
-  clampPlayer(player, arena, sheet);
+  clampPlayer(player, arena);
 }
 
 export function drawPlayer(
   context: CanvasRenderingContext2D,
   player: Player,
-  sheet: PlayerSheet | null,
+  art: GameArt | null,
 ): void {
-  if (!sheet) {
+  if (!art) {
     return;
   }
 
-  const frame = sheet.frames[player.facing];
-  const scale = PLAYER_DISPLAY_HEIGHT / frame.sh;
-  const width = frame.sw * scale;
-  const height = frame.sh * scale;
+  const dest = spriteDest(player);
+  const overlay = art.weapons[player.weaponId]?.overlay;
+  const behind = WEAPON_BEHIND.has(player.facing);
 
   context.imageSmoothingEnabled = false;
+
+  if (overlay && behind) {
+    blitCell(context, overlay, player.facing, dest);
+  }
+
+  blitCell(context, art.player, player.facing, dest);
+
+  if (overlay && !behind) {
+    blitCell(context, overlay, player.facing, dest);
+  }
+}
+
+function blitCell(
+  context: CanvasRenderingContext2D,
+  sheet: HTMLCanvasElement,
+  facing: Direction,
+  dest: { x: number; y: number; width: number; height: number },
+): void {
+  const cell = sheetCell(facing);
   context.drawImage(
-    sheet.canvas,
-    frame.sx,
-    frame.sy,
-    frame.sw,
-    frame.sh,
-    player.x - width / 2,
-    player.y - height,
-    width,
-    height,
+    sheet,
+    cell.sx,
+    cell.sy,
+    cell.sw,
+    cell.sh,
+    dest.x,
+    dest.y,
+    dest.width,
+    dest.height,
   );
 }
 
-function clampPlayer(
-  player: Player,
-  arena: Arena,
-  sheet: PlayerSheet | null,
-): void {
-  const size = displaySize(player, sheet);
+function clampPlayer(player: Player, arena: Arena): void {
+  const size = displaySize();
   const halfW = size.width / 2;
   const minX = arena.left + halfW;
   const maxX = arena.right - halfW;
@@ -90,18 +120,27 @@ function clampPlayer(
   player.y = minY <= maxY ? clamp(player.y, minY, maxY) : arena.bottom;
 }
 
-function displaySize(
-  player: Player,
-  sheet: PlayerSheet | null,
-): { width: number; height: number } {
-  if (!sheet) {
-    return { width: 32, height: PLAYER_DISPLAY_HEIGHT };
-  }
+function spriteDest(player: Player): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
+  const size = displaySize();
+  return {
+    x: player.x - size.width / 2,
+    y: player.y - size.height,
+    width: size.width,
+    height: size.height,
+  };
+}
 
-  const frame = sheet.frames[player.facing];
-  const scale = PLAYER_DISPLAY_HEIGHT / frame.sh;
-
-  return { width: frame.sw * scale, height: frame.sh * scale };
+function displaySize(): { width: number; height: number } {
+  const scale = PLAYER_DISPLAY_HEIGHT / PLAYER_CELL.height;
+  return {
+    width: PLAYER_CELL.width * scale,
+    height: PLAYER_DISPLAY_HEIGHT,
+  };
 }
 
 function clamp(value: number, min: number, max: number): number {

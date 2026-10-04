@@ -1,7 +1,7 @@
 import { createPlayWorld, drawMenuBackdrop } from '../scenes/play';
 import { mountMenu } from '../scenes/menu';
+import { loadGameArt } from '../systems/game-art';
 import { createInput } from '../systems/input';
-import { loadPlayerSheet } from '../systems/player-sheet';
 
 type SceneId = 'menu' | 'play';
 
@@ -22,9 +22,9 @@ export function startGame(root: HTMLElement): void {
   const world = createPlayWorld();
   const input = createInput();
 
-  void loadPlayerSheet()
-    .then((sheet) => {
-      world.setSheet(sheet);
+  void loadGameArt()
+    .then((art) => {
+      world.setArt(art);
     })
     .catch((error: unknown) => {
       console.error(error);
@@ -76,9 +76,24 @@ export function startGame(root: HTMLElement): void {
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape' && scene === 'play') {
+    if (scene !== 'play') {
+      return;
+    }
+
+    if (event.key === 'Escape') {
       event.preventDefault();
       setScene('menu');
+      return;
+    }
+
+    if (event.code === 'Digit1') {
+      event.preventDefault();
+      world.equip('w01-pistol');
+    }
+
+    if (event.code === 'Digit2') {
+      event.preventDefault();
+      world.equip('w02-smg');
     }
   };
 

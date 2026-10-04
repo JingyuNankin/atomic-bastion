@@ -1,5 +1,6 @@
 import { mat4Multiply, mat4Ortho, mat4RotateX, mat4RotateY } from './math';
-import { buildPlayerMesh } from './player-mesh';
+import { playerBoxes, type Box } from './player-model';
+import { buildBoxMesh } from './player-mesh';
 
 const VERTEX_SOURCE = `
 attribute vec3 a_position;
@@ -24,12 +25,33 @@ void main() {
 
 const ELEVATION = Math.PI / 4;
 
-export type PlayerGlRenderer = {
+export type OrthoBounds = {
+  left: number;
+  right: number;
+  bottom: number;
+  top: number;
+};
+
+export const PLAYER_ORTHO: OrthoBounds = {
+  left: -0.85,
+  right: 0.85,
+  bottom: -0.15,
+  top: 1.65,
+};
+
+export type BoxGlRenderer = {
   render: (yaw: number, width: number, height: number) => HTMLCanvasElement;
   destroy: () => void;
 };
 
-export function createPlayerGlRenderer(): PlayerGlRenderer {
+export function createPlayerGlRenderer(): BoxGlRenderer {
+  return createBoxGlRenderer(playerBoxes());
+}
+
+export function createBoxGlRenderer(
+  boxes: Box[],
+  ortho: OrthoBounds = PLAYER_ORTHO,
+): BoxGlRenderer {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
   canvas.height = 80;
@@ -46,7 +68,7 @@ export function createPlayerGlRenderer(): PlayerGlRenderer {
   }
 
   const program = createProgram(gl, VERTEX_SOURCE, FRAGMENT_SOURCE);
-  const mesh = buildPlayerMesh();
+  const mesh = buildBoxMesh(boxes);
   const position = gl.createBuffer();
   const color = gl.createBuffer();
   const vertexCount = mesh.positions.length / 3;
@@ -86,7 +108,14 @@ export function createPlayerGlRenderer(): PlayerGlRenderer {
       gl.enableVertexAttribArray(aColor);
       gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 0, 0);
 
-      const projection = mat4Ortho(-0.85, 0.85, -0.15, 1.65, -8, 8);
+      const projection = mat4Ortho(
+        ortho.left,
+        ortho.right,
+        ortho.bottom,
+        ortho.top,
+        -8,
+        8,
+      );
       const view = mat4RotateX(ELEVATION);
       const model = mat4RotateY(yaw);
       const mvp = mat4Multiply(projection, mat4Multiply(view, model));

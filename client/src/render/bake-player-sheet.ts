@@ -1,5 +1,7 @@
 import { DIRECTIONS, type Direction } from '../game/direction';
-import { createPlayerGlRenderer } from './player-gl';
+import { createBoxGlRenderer } from './player-gl';
+import { playerBoxes, type Box } from './player-model';
+import { boxesExtent, centerBoxes } from './weapon-model';
 
 export const PLAYER_CELL = {
   width: 56,
@@ -28,8 +30,23 @@ const YAW: Record<Direction, number> = {
   nw: (Math.PI * 5) / 4,
 };
 
-export function bakePlayerSheet(): HTMLCanvasElement {
-  const renderer = createPlayerGlRenderer();
+export function sheetCell(direction: Direction): {
+  sx: number;
+  sy: number;
+  sw: number;
+  sh: number;
+} {
+  const { col, row } = CELL[direction];
+  return {
+    sx: col * PLAYER_CELL.width,
+    sy: row * PLAYER_CELL.height,
+    sw: PLAYER_CELL.width,
+    sh: PLAYER_CELL.height,
+  };
+}
+
+export function bakeBoxSheet(boxes: Box[]): HTMLCanvasElement {
+  const renderer = createBoxGlRenderer(boxes);
   const sheet = document.createElement('canvas');
   sheet.width = PLAYER_CELL.width * 3;
   sheet.height = PLAYER_CELL.height * 3;
@@ -58,6 +75,27 @@ export function bakePlayerSheet(): HTMLCanvasElement {
   }
 
   return sheet;
+}
+
+export function bakePlayerSheet(): HTMLCanvasElement {
+  return bakeBoxSheet(playerBoxes());
+}
+
+export function bakeFittedSprite(boxes: Box[], size: number): HTMLCanvasElement {
+  const centered = centerBoxes(boxes);
+  const pad = Math.max(0.08, boxesExtent(centered) * 1.35);
+  const renderer = createBoxGlRenderer(centered, {
+    left: -pad,
+    right: pad,
+    bottom: -pad,
+    top: pad,
+  });
+
+  try {
+    return renderer.render(YAW.se, size, size);
+  } finally {
+    renderer.destroy();
+  }
 }
 
 export function playerSheetToPng(sheet: HTMLCanvasElement): string {

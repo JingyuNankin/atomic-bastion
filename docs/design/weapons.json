@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "defaultWeaponId": "w01-pistol",
+  "weapons": [
+    {
+      "id": "w01-pistol",
+      "name": "短管手枪",
+      "nameEn": "Sidearm",
+      "role": "精确半自动",
+      "fireRate": 2.4,
+      "magazineSize": 12,
+      "damage": 18,
+      "reloadTime": 1.2,
+      "projectileSpeed": 560,
+      "knockback": 28,
+      "spread": 2,
+      "penetration": 0,
+      "projectileCount": 1
+    },
+    {
+      "id": "w02-smg",
+      "name": "破锈冲锋枪",
+      "nameEn": "Rust SMG",
+      "role": "高射速压制",
+      "fireRate": 9.5,
+      "magazineSize": 30,
+      "damage": 7,
+      "reloadTime": 1.8,
+      "projectileSpeed": 480,
+      "knockback": 12,
+      "spread": 8,
+      "penetration": 0,
+      "projectileCount": 1
+    }
+  ]
+}
