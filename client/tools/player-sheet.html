@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Player sheet · WebGL</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #0b0f14;
+        color: #e8f4ff;
+        font: 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+      }
+
+      main {
+        padding: 24px;
+      }
+
+      canvas {
+        display: block;
+        image-rendering: pixelated;
+        background: #2a3038;
+        width: 336px;
+        height: 432px;
+      }
+
+      button {
+        margin-top: 16px;
+        padding: 8px 14px;
+        border: 1px solid #7ec8ff;
+        background: rgba(126, 200, 255, 0.1);
+        color: #e8f4ff;
+        font: inherit;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>WebGL 正交烘焙 · 八向持枪姿势 · 透明底</p>
+      <p id="status"></p>
+      <canvas id="sheet" width="168" height="216"></canvas>
+      <button type="button" id="download">下载 PNG 到本地</button>
+    </main>
+    <script type="module" src="/src/tools/player-sheet-main.ts"></script>
+  </body>
+</html>

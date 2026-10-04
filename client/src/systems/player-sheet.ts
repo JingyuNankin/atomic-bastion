@@ -1,8 +1,8 @@
+import { bakePlayerSheet } from '../render/bake-player-sheet';
 import { DIRECTIONS, type Direction } from '../game/direction';
 
 const COLS = 3;
 const ROWS = 3;
-const BG_THRESHOLD = 40;
 
 const CELL: Record<Direction, { col: number; row: number }> = {
   nw: { col: 0, row: 0 },
@@ -28,53 +28,8 @@ export type PlayerSheet = {
 };
 
 export async function loadPlayerSheet(): Promise<PlayerSheet> {
-  const image = await loadImage(
-    `${import.meta.env.BASE_URL}img/sprites/p01-soldier.png`,
-  );
-  const canvas = knockOutSheetBackground(image);
-  const frames = cropDirectionFrames(canvas);
-
-  return { canvas, frames };
-}
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error(`Failed to load ${src}`));
-    image.src = src;
-  });
-}
-
-function knockOutSheetBackground(image: HTMLImageElement): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
-  canvas.width = image.naturalWidth;
-  canvas.height = image.naturalHeight;
-  const context = canvas.getContext('2d');
-
-  if (!context) {
-    throw new Error('Canvas 2D context is not available');
-  }
-
-  context.drawImage(image, 0, 0);
-  const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
-  const br = pixels.data[0];
-  const bg = pixels.data[1];
-  const bb = pixels.data[2];
-  const limit = BG_THRESHOLD * BG_THRESHOLD;
-
-  for (let i = 0; i < pixels.data.length; i += 4) {
-    const dr = pixels.data[i] - br;
-    const dg = pixels.data[i + 1] - bg;
-    const db = pixels.data[i + 2] - bb;
-
-    if (dr * dr + dg * dg + db * db < limit) {
-      pixels.data[i + 3] = 0;
-    }
-  }
-
-  context.putImageData(pixels, 0, 0);
-  return canvas;
+  const canvas = bakePlayerSheet();
+  return { canvas, frames: cropDirectionFrames(canvas) };
 }
 
 function cropDirectionFrames(

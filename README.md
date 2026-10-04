@@ -72,7 +72,9 @@ npx --yes serve dist
 - Vite 打包出的 JS/CSS 在 `dist/assets/`，与游戏图不是一回事
 - `client/public/` 下的文件会原样拷到 `dist/`，Canvas 用相对路径 `./img/...` 即可加载（配合 `base: './'`）
 
-定稿流程：在 `assets/` 里画 / 生成 → 切出游戏用图 → 放入 `client/public/img/` 的对应子目录（`sprites/`、`tiles/`、`ui/`）。代码不要引用 `assets/`。
+玩家角色不再加载位图：用 **WebGL 正交方块模型** 在运行时烘焙八向图（45° 俯视、无透视）。预览 / 导出：开发时打开 `http://127.0.0.1:5173/tools/player-sheet.html`。
+
+其它图像仍按「草稿 → 正式图」：在 `assets/` 里画 / 生成 → 切出游戏用图 → 放入 `client/public/img/`。代码不要引用 `assets/`。
 
 ## 目录结构
 
@@ -83,9 +85,11 @@ atomic-bastion/
 ├── dist/                   # npm run build 产物（不入库）
 ├── client/                 # 前端：Canvas 游戏本体
 │   ├── index.html          # 页面入口
+│   ├── tools/              # WebGL 八向图预览（仅开发）
 │   ├── public/
-│   │   └── img/            # 前端正式图像（构建后 → dist/img/）
+│   │   └── img/            # 其它正式图像（构建后 → dist/img/）
 │   └── src/
+│       ├── render/         # WebGL 正交模型 / 烘焙八向图
 │       ├── game/           # 主循环、相机、世界
 │       ├── entities/       # 玩家、敌人、子弹等实体
 │       ├── weapons/        # 武器与弹道
