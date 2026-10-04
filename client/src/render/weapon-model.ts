@@ -11,7 +11,7 @@ const HAND_Y = 0.82;
 const HAND_Z = 0.41;
 
 const WOOD: [number, number, number] = [0.42, 0.28, 0.14];
-const RED: [number, number, number] = [0.82, 0.16, 0.2];
+const LASER: [number, number, number] = [0, 1, 80 / 255];
 const ORANGE: [number, number, number] = [0.9, 0.4, 0.12];
 const OLIVE: [number, number, number] = [0.3, 0.38, 0.22];
 
@@ -147,9 +147,9 @@ function laserBoxes(): Box[] {
   return [
     { cx: HAND_X, cy: HAND_Y + 0.01, cz: HAND_Z + 0.08, hx: 0.02, hy: 0.02, hz: 0.08, color: DARK },
     { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.26, hx: 0.014, hy: 0.014, hz: 0.16, color: METAL },
-    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.42, hx: 0.01, hy: 0.01, hz: 0.04, color: RED },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.42, hx: 0.01, hy: 0.01, hz: 0.04, color: LASER },
     { cx: HAND_X, cy: HAND_Y - 0.04, cz: HAND_Z + 0.06, hx: 0.016, hy: 0.04, hz: 0.02, color: DARK },
-    { cx: HAND_X + 0.03, cy: HAND_Y + 0.0, cz: HAND_Z + 0.1, hx: 0.016, hy: 0.018, hz: 0.02, color: RED },
+    { cx: HAND_X + 0.03, cy: HAND_Y + 0.0, cz: HAND_Z + 0.1, hx: 0.016, hy: 0.018, hz: 0.02, color: LASER },
   ];
 }
 

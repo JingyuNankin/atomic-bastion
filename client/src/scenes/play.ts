@@ -14,6 +14,7 @@ import {
 import type { Axis } from '../game/direction';
 import {
   createCombat,
+  DENIED_FIRE_TIME,
   resetCombat,
   updateCombat,
 } from '../systems/combat';
@@ -148,6 +149,14 @@ export function createPlayWorld(): PlayWorld {
           magazineSize: equipped.magazineSize,
           ammoIcon: art?.projectiles[equipped.projectileId] ?? null,
           reloading: combat.reloadTimer > 0,
+          reloadProgress:
+            combat.reloadDuration <= 0
+              ? 0
+              : 1 - combat.reloadTimer / combat.reloadDuration,
+          deniedFire:
+            combat.deniedFireTimer <= 0
+              ? 0
+              : combat.deniedFireTimer / DENIED_FIRE_TIME,
         },
       );
     },

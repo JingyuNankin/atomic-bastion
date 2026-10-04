@@ -8,9 +8,13 @@ export type Projectile = {
   vx: number;
   vy: number;
   projectileId: ProjectileId;
+  life?: number;
+  maxLife?: number;
+  length?: number;
 };
 
 const DESPAWN_PAD = 48;
+const BEAM_RGB = { r: 0, g: 255, b: 80 };
 
 export function updateProjectiles(
   projectiles: Projectile[],
@@ -19,6 +23,20 @@ export function updateProjectiles(
 ): void {
   for (let i = projectiles.length - 1; i >= 0; i -= 1) {
     const shot = projectiles[i];
+    const def = getProjectile(shot.projectileId);
+
+    if (shot.life !== undefined) {
+      shot.life -= dt;
+      if (shot.life <= 0) {
+        projectiles.splice(i, 1);
+        continue;
+      }
+    }
+
+    if (def.style === 'beam') {
+      continue;
+    }
+
     shot.x += shot.vx * dt;
     shot.y += shot.vy * dt;
 
@@ -38,14 +56,20 @@ export function drawProjectiles(
   projectiles: Projectile[],
   art: GameArt | null,
 ): void {
-  if (!art) {
-    return;
-  }
-
   context.imageSmoothingEnabled = false;
 
   for (const shot of projectiles) {
     const def = getProjectile(shot.projectileId);
+
+    if (def.style === 'beam') {
+      drawBeam(context, shot);
+      continue;
+    }
+
+    if (!art) {
+      continue;
+    }
+
     const sprite = art.projectiles[shot.projectileId];
 
     if (!sprite) {
@@ -64,4 +88,41 @@ export function drawProjectiles(
     );
     context.restore();
   }
+}
+
+function drawBeam(context: CanvasRenderingContext2D, shot: Projectile): void {
+  const fade =
+    shot.maxLife && shot.maxLife > 0
+      ? Math.max(0, Math.min(1, (shot.life ?? 0) / shot.maxLife))
+      : 1;
+  const length = shot.length ?? 1400;
+  const angle = Math.atan2(shot.vy, shot.vx);
+  const { r, g, b } = BEAM_RGB;
+
+  context.save();
+  context.translate(shot.x, shot.y);
+  context.rotate(angle);
+  context.globalCompositeOperation = 'lighter';
+  context.lineCap = 'square';
+
+  stroke(context, length, `rgba(${r}, ${g}, ${b}, ${0.1 * fade})`, 16);
+  stroke(context, length, `rgba(${r}, ${g}, ${b}, ${0.28 * fade})`, 7);
+  stroke(context, length, `rgba(${r}, ${g}, ${b}, ${0.75 * fade})`, 3);
+  stroke(context, length, `rgba(210, 255, 220, ${0.95 * fade})`, 1.25);
+
+  context.restore();
+}
+
+function stroke(
+  context: CanvasRenderingContext2D,
+  length: number,
+  color: string,
+  width: number,
+): void {
+  context.strokeStyle = color;
+  context.lineWidth = width;
+  context.beginPath();
+  context.moveTo(0, 0);
+  context.lineTo(length, 0);
+  context.stroke();
 }

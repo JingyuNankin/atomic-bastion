@@ -53,15 +53,15 @@ function pelletBoxes(tint: Rgb): Box[] {
 
 function beamBoxes(tint: Rgb): Box[] {
   return [
-    { cx: 0, cy: 0, cz: 0, hx: 0.012, hy: 0.012, hz: 0.09, color: tint },
+    { cx: 0, cy: 0, cz: 0, hx: 0.01, hy: 0.01, hz: 0.14, color: tint },
     {
       cx: 0,
       cy: 0,
       cz: 0,
-      hx: 0.006,
-      hy: 0.006,
-      hz: 0.1,
-      color: shade(tint, 1.35),
+      hx: 0.004,
+      hy: 0.004,
+      hz: 0.16,
+      color: shade(tint, 1.45),
     },
   ];
 }

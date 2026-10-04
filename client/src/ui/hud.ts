@@ -14,6 +14,8 @@ export type VitalsHud = {
   magazineSize: number;
   ammoIcon: HTMLCanvasElement | null;
   reloading: boolean;
+  reloadProgress: number;
+  deniedFire: number;
 };
 
 export function weaponSlots(
@@ -53,7 +55,11 @@ function drawVitals(
   const y = height - 22;
   const ratio = vitals.maxHp <= 0 ? 0 : Math.max(0, Math.min(1, vitals.hp / vitals.maxHp));
 
-  drawAmmoIcons(context, x, y - 4, barWidth, vitals);
+  const ammo = drawAmmoIcons(context, x, y - 4, barWidth, vitals);
+
+  if (vitals.reloading) {
+    drawReloadMeter(context, x + barWidth + 8, ammo.top, y + barHeight, vitals);
+  }
 
   context.fillStyle = 'rgba(11, 15, 20, 0.72)';
   context.fillRect(x - 2, y - 2, barWidth + 4, barHeight + 4);
@@ -145,7 +151,7 @@ function drawAmmoIcons(
   bottom: number,
   maxWidth: number,
   vitals: VitalsHud,
-): void {
+): { top: number } {
   const count = Math.max(0, vitals.magazineSize);
   const compact = count > 16;
   const iconW = compact ? 4 : 5;
@@ -182,13 +188,49 @@ function drawAmmoIcons(
 
   context.globalAlpha = 1;
 
-  if (vitals.reloading) {
-    context.textAlign = 'left';
-    context.textBaseline = 'bottom';
-    context.fillStyle = '#8aa4b8';
-    context.font = '12px ui-sans-serif, system-ui, sans-serif';
-    context.fillText('装填中', left, top - 4);
-  }
+  return { top };
+}
+
+function drawReloadMeter(
+  context: CanvasRenderingContext2D,
+  x: number,
+  top: number,
+  bottom: number,
+  vitals: VitalsHud,
+): void {
+  const width = 5;
+  const height = Math.max(12, bottom - top);
+  const progress = Math.max(0, Math.min(1, vitals.reloadProgress));
+  const deny = Math.max(0, Math.min(1, vitals.deniedFire));
+  const filled = Math.max(1, Math.floor(height * progress));
+
+  context.fillStyle = 'rgba(11, 15, 20, 0.72)';
+  context.fillRect(x - 2, top - 2, width + 4, height + 4);
+
+  context.fillStyle = '#1a2430';
+  context.fillRect(x, top, width, height);
+
+  context.fillStyle = deny > 0 ? '#ffb347' : '#7ec8ff';
+  context.globalAlpha = deny > 0 ? 0.55 + deny * 0.45 : 0.92;
+  context.fillRect(x, top + height - filled, width, filled);
+  context.globalAlpha = 1;
+
+  context.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  context.fillRect(x, top + height - filled, width, 2);
+
+  context.strokeStyle = deny > 0 ? '#d4a03a' : 'rgba(126, 200, 255, 0.45)';
+  context.lineWidth = 1;
+  context.strokeRect(x + 0.5, top + 0.5, width - 1, height - 1);
+
+  context.textAlign = 'left';
+  context.textBaseline = 'middle';
+  context.font = deny > 0
+    ? '600 12px ui-sans-serif, system-ui, sans-serif'
+    : '12px ui-sans-serif, system-ui, sans-serif';
+  context.globalAlpha = deny > 0 ? 0.7 + deny * 0.3 : 0.8;
+  context.fillStyle = deny > 0 ? '#ffd27a' : '#8aa4b8';
+  context.fillText(deny > 0 ? '还在装填' : '装填', x + width + 8, top + height / 2);
+  context.globalAlpha = 1;
 }
 
 function drawWeaponSlots(
