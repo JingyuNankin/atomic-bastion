@@ -1,0 +1,69 @@
+.play-bar {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.play-bar[hidden] {
+  display: none;
+}
+
+.play-bar__back {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+}
+
+.play-bar__right {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.play-bar__btn,
+.play-bar__credits {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: #c5d4e0;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.play-bar__btn {
+  appearance: none;
+  cursor: pointer;
+}
+
+.play-bar__btn:hover,
+.play-bar__btn:focus-visible {
+  color: #e8f4ff;
+  outline: none;
+}
+
+.play-bar__credits {
+  color: #e8f4ff;
+  font-variant-numeric: tabular-nums;
+}
+
+.play-bar__credits-icon {
+  color: #d4a03a;
+}
+
+.play-bar__icon {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}

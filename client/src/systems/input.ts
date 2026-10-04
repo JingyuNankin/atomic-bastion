@@ -1,9 +1,11 @@
 import type { Axis } from '../game/direction';
 
 const MOVE_CODES = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD']);
+const FIRE_CODE = 'Space';
 
 export type Input = {
   axis: () => Axis;
+  firing: () => boolean;
   destroy: () => void;
 };
 
@@ -11,7 +13,7 @@ export function createInput(): Input {
   const held = new Set<string>();
 
   const onKeyDown = (event: KeyboardEvent) => {
-    if (!MOVE_CODES.has(event.code)) {
+    if (event.code !== FIRE_CODE && !MOVE_CODES.has(event.code)) {
       return;
     }
 
@@ -53,6 +55,9 @@ export function createInput(): Input {
       }
 
       return { x, y };
+    },
+    firing() {
+      return held.has(FIRE_CODE);
     },
     destroy() {
       window.removeEventListener('keydown', onKeyDown);

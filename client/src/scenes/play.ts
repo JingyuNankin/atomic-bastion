@@ -6,10 +6,25 @@ import {
   type Arena,
   type Player,
 } from '../entities/player';
+import {
+  drawProjectiles,
+  updateProjectiles,
+  type Projectile,
+} from '../entities/projectile';
 import type { Axis } from '../game/direction';
+import {
+  createCombat,
+  resetCombat,
+  updateCombat,
+} from '../systems/combat';
 import { getWeaponArt, type GameArt } from '../systems/game-art';
-import { drawWeaponHud } from '../ui/hud';
-import { DEFAULT_WEAPON_ID, getWeapon, type WeaponId } from '../weapons/catalog';
+import { drawWeaponHud, weaponSlots } from '../ui/hud';
+import {
+  DEFAULT_WEAPON_ID,
+  getWeapon,
+  listWeapons,
+  type WeaponId,
+} from '../weapons/catalog';
 
 const BACKGROUND = '#0b0f14';
 const ARENA_FILL = '#121820';
@@ -19,7 +34,13 @@ export type PlayWorld = {
   setArt: (art: GameArt) => void;
   enter: (width: number, height: number) => void;
   equip: (weaponId: WeaponId) => void;
-  update: (dt: number, axis: Axis, width: number, height: number) => void;
+  update: (
+    dt: number,
+    axis: Axis,
+    firing: boolean,
+    width: number,
+    height: number,
+  ) => void;
   draw: (
     context: CanvasRenderingContext2D,
     width: number,
@@ -31,6 +52,8 @@ export type PlayWorld = {
 export function createPlayWorld(): PlayWorld {
   let art: GameArt | null = null;
   const player: Player = createPlayer(0, 0);
+  const projectiles: Projectile[] = [];
+  const combat = createCombat();
 
   const arenaOf = (width: number, height: number): Arena => ({
     left: ARENA_INSET,
@@ -47,15 +70,22 @@ export function createPlayWorld(): PlayWorld {
       player.x = width / 2;
       player.y = height / 2;
       player.facing = 's';
+      player.hp = player.maxHp;
       equipWeapon(player, DEFAULT_WEAPON_ID);
+      projectiles.length = 0;
+      resetCombat(combat);
       updatePlayer(player, 0, { x: 0, y: 0 }, arenaOf(width, height));
     },
     equip(weaponId) {
       getWeapon(weaponId);
       equipWeapon(player, weaponId);
+      resetCombat(combat);
     },
-    update(dt, axis, width, height) {
-      updatePlayer(player, dt, axis, arenaOf(width, height));
+    update(dt, axis, firing, width, height) {
+      const arena = arenaOf(width, height);
+      updatePlayer(player, dt, axis, arena);
+      updateCombat(combat, player, projectiles, dt, firing);
+      updateProjectiles(projectiles, dt, arena);
     },
     draw(context, width, height, time) {
       context.fillStyle = BACKGROUND;
@@ -90,19 +120,30 @@ export function createPlayWorld(): PlayWorld {
       );
 
       drawPlayer(context, player, art);
+      drawProjectiles(context, projectiles, art);
+      const equipped = getWeapon(player.weaponId);
       drawWeaponHud(
         context,
+        width,
         height,
         player.weaponId,
-        player.ammoInMag,
-        getWeaponArt(art, player.weaponId)?.icon ?? null,
+        weaponSlots(
+          Object.fromEntries(
+            listWeapons().map((weapon) => [
+              weapon.id,
+              getWeaponArt(art, weapon.id)?.icon,
+            ]),
+          ),
+        ),
+        {
+          hp: player.hp,
+          maxHp: player.maxHp,
+          ammoInMag: player.ammoInMag,
+          magazineSize: equipped.magazineSize,
+          ammoIcon: art?.projectiles[equipped.projectileId] ?? null,
+          reloading: combat.reloadTimer > 0,
+        },
       );
-
-      context.textAlign = 'right';
-      context.textBaseline = 'top';
-      context.fillStyle = '#8aa4b8';
-      context.font = '13px ui-sans-serif, system-ui, sans-serif';
-      context.fillText('生存模式 · WASD 移动 · 1/2 切枪', width - 16, 16);
     },
   };
 }

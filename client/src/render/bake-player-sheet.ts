@@ -81,7 +81,11 @@ export function bakePlayerSheet(): HTMLCanvasElement {
   return bakeBoxSheet(playerBoxes());
 }
 
-export function bakeFittedSprite(boxes: Box[], size: number): HTMLCanvasElement {
+export function bakeFittedSprite(
+  boxes: Box[],
+  size: number,
+  yaw: number = YAW.se,
+): HTMLCanvasElement {
   const centered = centerBoxes(boxes);
   const pad = Math.max(0.08, boxesExtent(centered) * 1.35);
   const renderer = createBoxGlRenderer(centered, {
@@ -92,7 +96,7 @@ export function bakeFittedSprite(boxes: Box[], size: number): HTMLCanvasElement 
   });
 
   try {
-    return renderer.render(YAW.se, size, size);
+    return renderer.render(yaw, size, size);
   } finally {
     renderer.destroy();
   }

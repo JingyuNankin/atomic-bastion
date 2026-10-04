@@ -66,19 +66,12 @@ export function boxesExtent(boxes: Box[]): number {
   return extent;
 }
 
-export function projectileBoxes(weaponId: string): Box[] {
-  const slim = weaponId === 'w02-smg';
-  return [
-    {
-      cx: 0,
-      cy: 0.84,
-      cz: 0.72,
-      hx: slim ? 0.012 : 0.016,
-      hy: slim ? 0.012 : 0.016,
-      hz: slim ? 0.04 : 0.05,
-      color: BRASS,
-    },
-  ];
+export function recoiledWeaponBoxes(weaponId: string): Box[] {
+  return weaponBoxes(weaponId).map((box) => ({
+    ...box,
+    cy: box.cy + 0.012,
+    cz: box.cz - 0.07,
+  }));
 }
 
 function pistolBoxes(): Box[] {

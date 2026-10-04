@@ -1,32 +1,51 @@
 import { bakeBoxSheet, bakeFittedSprite, bakePlayerSheet } from '../render/bake-player-sheet';
-import { projectileBoxes, weaponBoxes } from '../render/weapon-model';
-import { listWeapons, type WeaponId } from '../weapons/catalog';
+import { muzzleFlashBoxes, projectileBoxes } from '../render/projectile-model';
+import { recoiledWeaponBoxes, weaponBoxes } from '../render/weapon-model';
+import {
+  listProjectiles,
+  listWeapons,
+  type ProjectileId,
+  type WeaponId,
+} from '../weapons/catalog';
 
 export type WeaponArt = {
   overlay: HTMLCanvasElement;
+  fireOverlay: HTMLCanvasElement;
   icon: HTMLCanvasElement;
-  projectile: HTMLCanvasElement;
 };
 
 export type GameArt = {
   player: HTMLCanvasElement;
   weapons: Record<WeaponId, WeaponArt>;
+  projectiles: Record<ProjectileId, HTMLCanvasElement>;
+  muzzleFlash: HTMLCanvasElement;
 };
 
 export async function loadGameArt(): Promise<GameArt> {
   const weapons: Record<WeaponId, WeaponArt> = {};
+  const projectiles: Record<ProjectileId, HTMLCanvasElement> = {};
 
   for (const weapon of listWeapons()) {
     weapons[weapon.id] = {
       overlay: bakeBoxSheet(weaponBoxes(weapon.id)),
+      fireOverlay: bakeBoxSheet(recoiledWeaponBoxes(weapon.id)),
       icon: bakeFittedSprite(weaponBoxes(weapon.id), 40),
-      projectile: bakeFittedSprite(projectileBoxes(weapon.id), 16),
     };
+  }
+
+  for (const projectile of listProjectiles()) {
+    projectiles[projectile.id] = bakeFittedSprite(
+      projectileBoxes(projectile),
+      48,
+      Math.PI / 2,
+    );
   }
 
   return {
     player: bakePlayerSheet(),
     weapons,
+    projectiles,
+    muzzleFlash: bakeFittedSprite(muzzleFlashBoxes(), 40, Math.PI / 2),
   };
 }
 

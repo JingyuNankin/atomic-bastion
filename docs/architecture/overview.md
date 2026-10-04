@@ -20,12 +20,12 @@ shared：武器 / 敌人 / 方向等常量与类型，避免前后端各写一�
 ## 客户端
 
 - 游戏本体在 Canvas 中更新与绘制，不依赖 DOM 作为战斗场景
-- 首页菜单用 DOM 叠在 Canvas 上；战斗场景仍走 Canvas
+- 首页菜单与战斗顶栏用 DOM 叠在 Canvas 上；战斗场景仍走 Canvas
 - `game/` 负责循环与世界；`systems/` 负责输入、碰撞、生成；`entities/` 与 `weapons/` 为数据与行为
 - 语言与打包：TypeScript + Vite；不使用游戏引擎框架
 - 一期用 `npm run build` 产出静态网页（`dist/`）给玩家试玩，不依赖后端
 - 图像草稿在 `assets/`；游戏用图在 `client/public/img/`，构建后为 `dist/img/`
-- 玩家与武器八向图由 WebGL 正交烘焙生成（`client/src/render/`），不读 PNG 位图；武器按朝向叠到手上
+- 玩家、武器与弹体由 WebGL 正交烘焙生成（`client/src/render/`），不读 PNG 位图；武器按朝向叠到手上，弹体由 `weapons.json` 的 `projectileId` 索引
 
 ## 服务端
 

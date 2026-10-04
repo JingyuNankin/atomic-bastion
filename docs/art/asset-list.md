@@ -24,12 +24,17 @@
 
 | ID | 资源 | 状态 |
 | --- | --- | --- |
-| w01-pistol | 短管手枪图层 / 弹体 / HUD 图标 | WebGL 运行时烘焙 |
-| w02-smg | 破锈冲锋枪图层 / 弹体 / HUD 图标 | WebGL 运行时烘焙 |
+| w01-pistol | 手枪图层 / 射击后坐 / HUD 图标 | WebGL 运行时烘焙 |
+| w02-smg | 冲锋枪图层 / 射击后坐 / HUD 图标 | WebGL 运行时烘焙 |
+| proj-pistol-slug | 手枪弹 | WebGL 运行时烘焙 |
+| proj-smg-slug | 冲锋枪弹 | WebGL 运行时烘焙 |
+| proj-laser-beam | 激光束（预留） | WebGL 运行时烘焙 |
+| proj-buckshot | 霰弹（预留） | WebGL 运行时烘焙 |
+| proj-rocket | 火箭弹（预留） | WebGL 运行时烘焙 |
 
 ## 场景 / UI
 
 | 资源 | 状态 |
 | --- | --- |
 | 地块、据点、障碍 | 待设计 |
-| HUD 当前武器 / 弹匣 | 已接入（WebGL 图标） |
+| HUD 弹匣 / 右侧四武器槽 | 已接入（WebGL 图标） |

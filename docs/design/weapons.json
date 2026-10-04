@@ -1,17 +1,61 @@
 {
   "version": 1,
   "defaultWeaponId": "w01-pistol",
+  "projectiles": [
+    {
+      "id": "proj-pistol-slug",
+      "name": "手枪弹",
+      "style": "slug",
+      "tint": "#d4a03a",
+      "drawWidth": 18,
+      "drawHeight": 8
+    },
+    {
+      "id": "proj-smg-slug",
+      "name": "冲锋枪弹",
+      "style": "slug",
+      "tint": "#c4b48a",
+      "drawWidth": 14,
+      "drawHeight": 6
+    },
+    {
+      "id": "proj-laser-beam",
+      "name": "激光束",
+      "style": "beam",
+      "tint": "#ff3a4a",
+      "drawWidth": 28,
+      "drawHeight": 6
+    },
+    {
+      "id": "proj-buckshot",
+      "name": "霰弹",
+      "style": "pellet",
+      "tint": "#b8bcc0",
+      "drawWidth": 8,
+      "drawHeight": 8
+    },
+    {
+      "id": "proj-rocket",
+      "name": "火箭弹",
+      "style": "rocket",
+      "tint": "#6a4a28",
+      "drawWidth": 26,
+      "drawHeight": 12
+    }
+  ],
   "weapons": [
     {
       "id": "w01-pistol",
-      "name": "短管手枪",
-      "nameEn": "Sidearm",
+      "name": "手枪",
+      "nameEn": "Pistol",
       "role": "精确半自动",
+      "fireMode": "semi",
+      "projectileId": "proj-pistol-slug",
       "fireRate": 2.4,
       "magazineSize": 12,
       "damage": 18,
       "reloadTime": 1.2,
-      "projectileSpeed": 560,
+      "projectileSpeed": 1120,
       "knockback": 28,
       "spread": 2,
       "penetration": 0,
@@ -19,14 +63,16 @@
     },
     {
       "id": "w02-smg",
-      "name": "破锈冲锋枪",
-      "nameEn": "Rust SMG",
+      "name": "冲锋枪",
+      "nameEn": "SMG",
       "role": "高射速压制",
+      "fireMode": "auto",
+      "projectileId": "proj-smg-slug",
       "fireRate": 9.5,
       "magazineSize": 30,
       "damage": 7,
       "reloadTime": 1.8,
-      "projectileSpeed": 480,
+      "projectileSpeed": 960,
       "knockback": 12,
       "spread": 8,
       "penetration": 0,

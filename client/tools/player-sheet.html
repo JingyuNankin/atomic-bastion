@@ -50,6 +50,12 @@
         height: 64px;
       }
 
+      #flight {
+        width: 640px;
+        height: 240px;
+        margin: 0 0 8px;
+      }
+
       button {
         margin-top: 12px;
         padding: 8px 14px;
@@ -65,6 +71,8 @@
     <main>
       <p>WebGL 正交烘焙 · 角色与武器共用相机与格尺寸 · 透明底</p>
       <p id="status"></p>
+      <canvas id="flight" width="640" height="240"></canvas>
+      <p>弹道预览：左手枪点射 · 右冲锋枪连发</p>
       <div id="gallery"></div>
     </main>
     <script type="module" src="/src/tools/player-sheet-main.ts"></script>

@@ -2,6 +2,7 @@ import { createPlayWorld, drawMenuBackdrop } from '../scenes/play';
 import { mountMenu } from '../scenes/menu';
 import { loadGameArt } from '../systems/game-art';
 import { createInput } from '../systems/input';
+import { mountPlayBar } from '../ui/play-bar';
 
 type SceneId = 'menu' | 'play';
 
@@ -30,12 +31,11 @@ export function startGame(root: HTMLElement): void {
       console.error(error);
     });
 
-  const backButton = document.createElement('button');
-  backButton.type = 'button';
-  backButton.className = 'play-back';
-  backButton.textContent = '返回菜单';
-  backButton.hidden = true;
-  root.append(backButton);
+  const playBar = mountPlayBar(root, {
+    onBack() {
+      setScene('menu');
+    },
+  });
 
   const menu = mountMenu(root, {
     onStart() {
@@ -54,7 +54,7 @@ export function startGame(root: HTMLElement): void {
   function setScene(next: SceneId): void {
     scene = next;
     menu.setVisible(next === 'menu');
-    backButton.hidden = next !== 'play';
+    playBar.setVisible(next === 'play');
 
     if (next === 'play') {
       const { width, height } = viewSize();
@@ -62,16 +62,12 @@ export function startGame(root: HTMLElement): void {
     }
   }
 
-  backButton.addEventListener('click', () => {
-    setScene('menu');
-  });
-
   const onResize = () => {
     syncCanvasSize(canvas);
 
     if (scene === 'play') {
       const { width, height } = viewSize();
-      world.update(0, { x: 0, y: 0 }, width, height);
+      world.update(0, { x: 0, y: 0 }, false, width, height);
     }
   };
 
@@ -108,7 +104,7 @@ export function startGame(root: HTMLElement): void {
     if (scene === 'menu') {
       drawMenuBackdrop(context, canvas.width, canvas.height, time);
     } else {
-      world.update(dt, input.axis(), width, height);
+      world.update(dt, input.axis(), input.firing(), width, height);
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       world.draw(context, width, height, time);
       context.setTransform(1, 0, 0, 1, 0, 0);
