@@ -10,12 +10,30 @@ const HAND_X = 0.005;
 const HAND_Y = 0.82;
 const HAND_Z = 0.41;
 
-export function weaponBoxes(weaponId: string): Box[] {
-  if (weaponId === 'w02-smg') {
-    return smgBoxes();
-  }
+const WOOD: [number, number, number] = [0.42, 0.28, 0.14];
+const RED: [number, number, number] = [0.82, 0.16, 0.2];
+const ORANGE: [number, number, number] = [0.9, 0.4, 0.12];
+const OLIVE: [number, number, number] = [0.3, 0.38, 0.22];
 
-  return pistolBoxes();
+export function weaponBoxes(weaponId: string): Box[] {
+  switch (weaponId) {
+    case 'w02-smg':
+      return smgBoxes();
+    case 'w03-rifle':
+      return rifleBoxes();
+    case 'w04-shotgun':
+      return shotgunBoxes();
+    case 'w05-grenade':
+      return grenadeBoxes();
+    case 'w06-laser':
+      return laserBoxes();
+    case 'w07-rocket':
+      return rocketBoxes();
+    case 'w08-flamethrower':
+      return flamerBoxes();
+    default:
+      return pistolBoxes();
+  }
 }
 
 export function centerBoxes(boxes: Box[]): Box[] {
@@ -93,5 +111,64 @@ function smgBoxes(): Box[] {
     { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.34, hx: 0.014, hy: 0.014, hz: 0.08, color: DARK },
     { cx: HAND_X, cy: HAND_Y - 0.08, cz: HAND_Z + 0.08, hx: 0.016, hy: 0.06, hz: 0.02, color: RUST },
     { cx: HAND_X, cy: HAND_Y + 0.01, cz: HAND_Z - 0.06, hx: 0.018, hy: 0.018, hz: 0.05, color: DARK },
+  ];
+}
+
+function rifleBoxes(): Box[] {
+  return [
+    { cx: HAND_X, cy: HAND_Y - 0.01, cz: HAND_Z + 0.02, hx: 0.022, hy: 0.028, hz: 0.05, color: WOOD },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.2, hx: 0.02, hy: 0.018, hz: 0.2, color: METAL },
+    { cx: HAND_X, cy: HAND_Y + 0.04, cz: HAND_Z + 0.16, hx: 0.016, hy: 0.01, hz: 0.1, color: SLIDE },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.42, hx: 0.012, hy: 0.012, hz: 0.06, color: DARK },
+    { cx: HAND_X, cy: HAND_Y - 0.06, cz: HAND_Z - 0.04, hx: 0.018, hy: 0.05, hz: 0.03, color: WOOD },
+    { cx: HAND_X, cy: HAND_Y - 0.05, cz: HAND_Z + 0.12, hx: 0.014, hy: 0.04, hz: 0.016, color: DARK },
+  ];
+}
+
+function shotgunBoxes(): Box[] {
+  return [
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.16, hx: 0.03, hy: 0.024, hz: 0.16, color: METAL },
+    { cx: HAND_X, cy: HAND_Y + 0.05, cz: HAND_Z + 0.14, hx: 0.022, hy: 0.014, hz: 0.12, color: DARK },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.36, hx: 0.024, hy: 0.02, hz: 0.08, color: DARK },
+    { cx: HAND_X, cy: HAND_Y - 0.05, cz: HAND_Z + 0.02, hx: 0.02, hy: 0.05, hz: 0.028, color: WOOD },
+    { cx: HAND_X, cy: HAND_Y + 0.0, cz: HAND_Z + 0.1, hx: 0.018, hy: 0.016, hz: 0.03, color: RUST },
+  ];
+}
+
+function grenadeBoxes(): Box[] {
+  return [
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.08, hx: 0.032, hy: 0.036, hz: 0.03, color: OLIVE },
+    { cx: HAND_X, cy: HAND_Y + 0.06, cz: HAND_Z + 0.08, hx: 0.016, hy: 0.012, hz: 0.016, color: DARK },
+    { cx: HAND_X, cy: HAND_Y + 0.08, cz: HAND_Z + 0.08, hx: 0.008, hy: 0.016, hz: 0.008, color: METAL },
+  ];
+}
+
+function laserBoxes(): Box[] {
+  return [
+    { cx: HAND_X, cy: HAND_Y + 0.01, cz: HAND_Z + 0.08, hx: 0.02, hy: 0.02, hz: 0.08, color: DARK },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.26, hx: 0.014, hy: 0.014, hz: 0.16, color: METAL },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.42, hx: 0.01, hy: 0.01, hz: 0.04, color: RED },
+    { cx: HAND_X, cy: HAND_Y - 0.04, cz: HAND_Z + 0.06, hx: 0.016, hy: 0.04, hz: 0.02, color: DARK },
+    { cx: HAND_X + 0.03, cy: HAND_Y + 0.0, cz: HAND_Z + 0.1, hx: 0.016, hy: 0.018, hz: 0.02, color: RED },
+  ];
+}
+
+function rocketBoxes(): Box[] {
+  return [
+    { cx: HAND_X, cy: HAND_Y + 0.03, cz: HAND_Z + 0.2, hx: 0.036, hy: 0.036, hz: 0.2, color: OLIVE },
+    { cx: HAND_X, cy: HAND_Y + 0.03, cz: HAND_Z + 0.42, hx: 0.024, hy: 0.024, hz: 0.05, color: RUST },
+    { cx: HAND_X, cy: HAND_Y + 0.03, cz: HAND_Z - 0.02, hx: 0.04, hy: 0.04, hz: 0.04, color: DARK },
+    { cx: HAND_X, cy: HAND_Y - 0.04, cz: HAND_Z + 0.08, hx: 0.016, hy: 0.04, hz: 0.02, color: DARK },
+    { cx: HAND_X + 0.05, cy: HAND_Y + 0.03, cz: HAND_Z + 0.08, hx: 0.016, hy: 0.01, hz: 0.03, color: METAL },
+  ];
+}
+
+function flamerBoxes(): Box[] {
+  return [
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.16, hx: 0.022, hy: 0.02, hz: 0.12, color: METAL },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.3, hx: 0.028, hy: 0.024, hz: 0.05, color: DARK },
+    { cx: HAND_X - 0.05, cy: HAND_Y + 0.0, cz: HAND_Z + 0.04, hx: 0.03, hy: 0.04, hz: 0.03, color: OLIVE },
+    { cx: HAND_X, cy: HAND_Y - 0.04, cz: HAND_Z + 0.08, hx: 0.016, hy: 0.036, hz: 0.016, color: DARK },
+    { cx: HAND_X, cy: HAND_Y + 0.02, cz: HAND_Z + 0.36, hx: 0.016, hy: 0.016, hz: 0.03, color: ORANGE },
   ];
 }

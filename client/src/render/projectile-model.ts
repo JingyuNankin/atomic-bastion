@@ -14,6 +14,10 @@ export function projectileBoxes(def: ProjectileDef): Box[] {
       return beamBoxes(tint);
     case 'rocket':
       return rocketBoxes(tint);
+    case 'grenade':
+      return grenadeBoxes(tint);
+    case 'flame':
+      return flameBoxes(tint);
     default:
       return slugBoxes(tint);
   }
@@ -70,6 +74,20 @@ function rocketBoxes(tint: Rgb): Box[] {
     { cx: 0, cy: 0, cz: 0.08, hx: 0.02, hy: 0.02, hz: 0.04, color: nose },
     { cx: 0.04, cy: 0, cz: -0.06, hx: 0.02, hy: 0.006, hz: 0.03, color: fin },
     { cx: -0.04, cy: 0, cz: -0.06, hx: 0.02, hy: 0.006, hz: 0.03, color: fin },
+  ];
+}
+
+function grenadeBoxes(tint: Rgb): Box[] {
+  return [
+    { cx: 0, cy: 0, cz: 0, hx: 0.03, hy: 0.03, hz: 0.034, color: tint },
+    { cx: 0, cy: 0.028, cz: 0, hx: 0.012, hy: 0.01, hz: 0.012, color: shade(tint, 0.7) },
+  ];
+}
+
+function flameBoxes(tint: Rgb): Box[] {
+  return [
+    { cx: 0, cy: 0, cz: 0, hx: 0.03, hy: 0.026, hz: 0.04, color: tint },
+    { cx: 0, cy: 0.02, cz: 0.02, hx: 0.02, hy: 0.02, hz: 0.03, color: shade(tint, 1.25) },
   ];
 }
 

@@ -17,14 +17,10 @@ import {
   resetCombat,
   updateCombat,
 } from '../systems/combat';
+import { createLoadout, firstLoadoutWeapon, type Loadout } from '../game/loadout';
 import { getWeaponArt, type GameArt } from '../systems/game-art';
 import { drawWeaponHud, weaponSlots } from '../ui/hud';
-import {
-  DEFAULT_WEAPON_ID,
-  getWeapon,
-  listWeapons,
-  type WeaponId,
-} from '../weapons/catalog';
+import { getWeapon, listDesignedWeapons, type WeaponId } from '../weapons/catalog';
 
 const BACKGROUND = '#0b0f14';
 const ARENA_FILL = '#121820';
@@ -32,6 +28,7 @@ const ARENA_INSET = 48;
 
 export type PlayWorld = {
   setArt: (art: GameArt) => void;
+  setLoadout: (slots: Loadout) => void;
   enter: (width: number, height: number) => void;
   equip: (weaponId: WeaponId) => void;
   update: (
@@ -51,6 +48,7 @@ export type PlayWorld = {
 
 export function createPlayWorld(): PlayWorld {
   let art: GameArt | null = null;
+  let loadout: Loadout = createLoadout();
   const player: Player = createPlayer(0, 0);
   const projectiles: Projectile[] = [];
   const combat = createCombat();
@@ -66,12 +64,19 @@ export function createPlayWorld(): PlayWorld {
     setArt(next) {
       art = next;
     },
+    setLoadout(slots) {
+      loadout = slots;
+      if (!slots.includes(player.weaponId)) {
+        equipWeapon(player, firstLoadoutWeapon(slots));
+        resetCombat(combat);
+      }
+    },
     enter(width, height) {
       player.x = width / 2;
       player.y = height / 2;
       player.facing = 's';
       player.hp = player.maxHp;
-      equipWeapon(player, DEFAULT_WEAPON_ID);
+      equipWeapon(player, firstLoadoutWeapon(loadout));
       projectiles.length = 0;
       resetCombat(combat);
       updatePlayer(player, 0, { x: 0, y: 0 }, arenaOf(width, height));
@@ -128,8 +133,9 @@ export function createPlayWorld(): PlayWorld {
         height,
         player.weaponId,
         weaponSlots(
+          loadout,
           Object.fromEntries(
-            listWeapons().map((weapon) => [
+            listDesignedWeapons().map((weapon) => [
               weapon.id,
               getWeaponArt(art, weapon.id)?.icon,
             ]),

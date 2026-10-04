@@ -3,7 +3,13 @@ import catalog from '../../../docs/design/weapons.json';
 export type WeaponId = string;
 export type ProjectileId = string;
 export type FireMode = 'semi' | 'auto';
-export type ProjectileStyle = 'slug' | 'pellet' | 'beam' | 'rocket';
+export type ProjectileStyle =
+  | 'slug'
+  | 'pellet'
+  | 'beam'
+  | 'rocket'
+  | 'grenade'
+  | 'flame';
 
 export type ProjectileDef = {
   id: ProjectileId;
@@ -19,6 +25,9 @@ export type WeaponDef = {
   name: string;
   nameEn: string;
   role: string;
+  model: string;
+  blurb: string;
+  enabled: boolean;
   fireMode: FireMode;
   projectileId: ProjectileId;
   fireRate: number;
@@ -30,6 +39,9 @@ export type WeaponDef = {
   spread: number;
   penetration: number;
   projectileCount: number;
+  range: number;
+  blastRadius: number;
+  fuseTime: number;
 };
 
 export type WeaponCatalog = {
@@ -53,6 +65,10 @@ const projectilesById = new Map(
 export const DEFAULT_WEAPON_ID = catalog.defaultWeaponId;
 
 export function listWeapons(): WeaponDef[] {
+  return (catalog.weapons as WeaponDef[]).filter((weapon) => weapon.enabled);
+}
+
+export function listDesignedWeapons(): WeaponDef[] {
   return catalog.weapons as WeaponDef[];
 }
 

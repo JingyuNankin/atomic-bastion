@@ -22,7 +22,7 @@ import { recoiledWeaponBoxes, weaponBoxes } from '../render/weapon-model';
 import { DIRECTIONS } from '../game/direction';
 import { createCombat, updateCombat } from '../systems/combat';
 import { loadGameArt } from '../systems/game-art';
-import { listProjectiles, listWeapons } from '../weapons/catalog';
+import { listDesignedWeapons, listProjectiles } from '../weapons/catalog';
 
 const status = document.querySelector('#status');
 const gallery = document.querySelector('#gallery');
@@ -37,7 +37,7 @@ try {
 
   mountSheet(gallery, '角色空手', player, 'p01-soldier.png');
 
-  for (const weapon of listWeapons()) {
+  for (const weapon of listDesignedWeapons()) {
     const overlay = bakeBoxSheet(weaponBoxes(weapon.id));
     const fireOverlay = bakeBoxSheet(recoiledWeaponBoxes(weapon.id));
     const icon = bakeFittedSprite(weaponBoxes(weapon.id), 64);

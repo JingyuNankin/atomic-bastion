@@ -1,8 +1,12 @@
+import { createLoadout } from './loadout';
 import { createPlayWorld, drawMenuBackdrop } from '../scenes/play';
 import { mountMenu } from '../scenes/menu';
 import { loadGameArt } from '../systems/game-art';
 import { createInput } from '../systems/input';
+import { WEAPON_SLOT_COUNT } from '../ui/hud';
 import { mountPlayBar } from '../ui/play-bar';
+import { mountWeaponLocker } from '../ui/weapon-locker';
+import { listDesignedWeapons } from '../weapons/catalog';
 
 type SceneId = 'menu' | 'play';
 
@@ -19,13 +23,28 @@ export function startGame(root: HTMLElement): void {
 
   let scene: SceneId = 'menu';
   let lastTime = 0;
+  let loadout = createLoadout();
 
   const world = createPlayWorld();
   const input = createInput();
 
+  const locker = mountWeaponLocker(root, {
+    onChange(slots) {
+      loadout = slots;
+      world.setLoadout(slots);
+    },
+  });
+  locker.setLoadout(loadout);
+  world.setLoadout(loadout);
+
   void loadGameArt()
     .then((art) => {
       world.setArt(art);
+      locker.setIcons(
+        Object.fromEntries(
+          listDesignedWeapons().map((weapon) => [weapon.id, art.weapons[weapon.id]?.icon]),
+        ),
+      );
     })
     .catch((error: unknown) => {
       console.error(error);
@@ -33,7 +52,16 @@ export function startGame(root: HTMLElement): void {
 
   const playBar = mountPlayBar(root, {
     onBack() {
+      locker.close();
       setScene('menu');
+    },
+    onWeapons() {
+      if (locker.isOpen()) {
+        locker.close();
+        return;
+      }
+
+      locker.open();
     },
   });
 
@@ -55,6 +83,10 @@ export function startGame(root: HTMLElement): void {
     scene = next;
     menu.setVisible(next === 'menu');
     playBar.setVisible(next === 'play');
+
+    if (next !== 'play') {
+      locker.close();
+    }
 
     if (next === 'play') {
       const { width, height } = viewSize();
@@ -78,18 +110,30 @@ export function startGame(root: HTMLElement): void {
 
     if (event.key === 'Escape') {
       event.preventDefault();
+      if (locker.isOpen()) {
+        locker.close();
+        return;
+      }
+
       setScene('menu');
       return;
     }
 
-    if (event.code === 'Digit1') {
-      event.preventDefault();
-      world.equip('w01-pistol');
+    const slotIndex = slotIndexFromCode(event.code);
+    if (slotIndex === null) {
+      return;
     }
 
-    if (event.code === 'Digit2') {
-      event.preventDefault();
-      world.equip('w02-smg');
+    event.preventDefault();
+
+    if (locker.isOpen()) {
+      locker.assignSelected(slotIndex);
+      return;
+    }
+
+    const weaponId = loadout[slotIndex];
+    if (weaponId) {
+      world.equip(weaponId);
     }
   };
 
@@ -104,7 +148,14 @@ export function startGame(root: HTMLElement): void {
     if (scene === 'menu') {
       drawMenuBackdrop(context, canvas.width, canvas.height, time);
     } else {
-      world.update(dt, input.axis(), input.firing(), width, height);
+      const paused = locker.isOpen();
+      world.update(
+        paused ? 0 : dt,
+        paused ? { x: 0, y: 0 } : input.axis(),
+        paused ? false : input.firing(),
+        width,
+        height,
+      );
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       world.draw(context, width, height, time);
       context.setTransform(1, 0, 0, 1, 0, 0);
@@ -115,6 +166,16 @@ export function startGame(root: HTMLElement): void {
 
   setScene('menu');
   window.requestAnimationFrame(frame);
+}
+
+function slotIndexFromCode(code: string): number | null {
+  const match = /^Digit([1-4])$/.exec(code);
+  if (!match) {
+    return null;
+  }
+
+  const index = Number(match[1]) - 1;
+  return index >= 0 && index < WEAPON_SLOT_COUNT ? index : null;
 }
 
 function syncCanvasSize(canvas: HTMLCanvasElement): void {

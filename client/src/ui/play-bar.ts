@@ -4,6 +4,7 @@ const STARTING_CREDITS = 0;
 
 type PlayBarHandlers = {
   onBack: () => void;
+  onWeapons: () => void;
 };
 
 export type PlayBar = {
@@ -27,7 +28,7 @@ export function mountPlayBar(
         ${icon('shop')}
         商店
       </button>
-      <button type="button" class="play-bar__btn">
+      <button type="button" class="play-bar__btn play-bar__weapons">
         ${icon('weapons')}
         武器
       </button>
@@ -43,8 +44,17 @@ export function mountPlayBar(
     throw new Error('Missing play back button');
   }
 
+  const weaponsButton = overlay.querySelector('.play-bar__weapons');
+  if (!(weaponsButton instanceof HTMLButtonElement)) {
+    throw new Error('Missing play weapons button');
+  }
+
   backButton.addEventListener('click', () => {
     handlers.onBack();
+  });
+
+  weaponsButton.addEventListener('click', () => {
+    handlers.onWeapons();
   });
 
   overlay.addEventListener('pointerdown', (event) => {

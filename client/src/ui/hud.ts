@@ -1,4 +1,4 @@
-import { getWeapon, listWeapons, type WeaponId } from '../weapons/catalog';
+import { getWeapon, type WeaponId } from '../weapons/catalog';
 
 export const WEAPON_SLOT_COUNT = 4;
 
@@ -17,14 +17,14 @@ export type VitalsHud = {
 };
 
 export function weaponSlots(
+  loadout: Array<WeaponId | null>,
   icons: Record<WeaponId, HTMLCanvasElement | undefined>,
 ): WeaponSlot[] {
-  const weapons = listWeapons();
   return Array.from({ length: WEAPON_SLOT_COUNT }, (_, index) => {
-    const weapon = weapons[index];
+    const weaponId = loadout[index] ?? null;
     return {
-      weaponId: weapon?.id ?? null,
-      icon: weapon ? (icons[weapon.id] ?? null) : null,
+      weaponId,
+      icon: weaponId ? (icons[weaponId] ?? null) : null,
     };
   });
 }

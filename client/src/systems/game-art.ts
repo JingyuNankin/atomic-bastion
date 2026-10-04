@@ -2,8 +2,8 @@ import { bakeBoxSheet, bakeFittedSprite, bakePlayerSheet } from '../render/bake-
 import { muzzleFlashBoxes, projectileBoxes } from '../render/projectile-model';
 import { recoiledWeaponBoxes, weaponBoxes } from '../render/weapon-model';
 import {
+  listDesignedWeapons,
   listProjectiles,
-  listWeapons,
   type ProjectileId,
   type WeaponId,
 } from '../weapons/catalog';
@@ -25,7 +25,7 @@ export async function loadGameArt(): Promise<GameArt> {
   const weapons: Record<WeaponId, WeaponArt> = {};
   const projectiles: Record<ProjectileId, HTMLCanvasElement> = {};
 
-  for (const weapon of listWeapons()) {
+  for (const weapon of listDesignedWeapons()) {
     weapons[weapon.id] = {
       overlay: bakeBoxSheet(weaponBoxes(weapon.id)),
       fireOverlay: bakeBoxSheet(recoiledWeaponBoxes(weapon.id)),

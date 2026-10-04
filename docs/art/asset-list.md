@@ -26,11 +26,20 @@
 | --- | --- | --- |
 | w01-pistol | 手枪图层 / 射击后坐 / HUD 图标 | WebGL 运行时烘焙 |
 | w02-smg | 冲锋枪图层 / 射击后坐 / HUD 图标 | WebGL 运行时烘焙 |
+| w03-rifle | 突击步枪图层 / 图标 | 待制作 |
+| w04-shotgun | 霰弹枪图层 / 图标 | 待制作 |
+| w05-grenade | 手榴弹图层 / 图标 | 待制作 |
+| w06-laser | 激光枪图层 / 图标 | 待制作 |
+| w07-rocket | 火箭筒图层 / 图标 | 待制作 |
+| w08-flamethrower | 火焰喷射器图层 / 图标 | 待制作 |
 | proj-pistol-slug | 手枪弹 | WebGL 运行时烘焙 |
 | proj-smg-slug | 冲锋枪弹 | WebGL 运行时烘焙 |
-| proj-laser-beam | 激光束（预留） | WebGL 运行时烘焙 |
-| proj-buckshot | 霰弹（预留） | WebGL 运行时烘焙 |
-| proj-rocket | 火箭弹（预留） | WebGL 运行时烘焙 |
+| proj-rifle-slug | 步枪弹 | 待制作 |
+| proj-buckshot | 霰弹 | 待制作 |
+| proj-grenade | 榴弹 | 待制作 |
+| proj-laser-beam | 激光束 | 待制作 |
+| proj-rocket | 火箭弹 | 待制作 |
+| proj-flame | 火焰 | 待制作 |
 
 ## 场景 / UI
 
