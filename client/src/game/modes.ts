@@ -11,19 +11,19 @@ export const GAME_MODES: readonly GameMode[] = [
   {
     id: 'survival',
     name: '生存模式',
-    summary: '敌人源源不断涌来，比谁能撑过更多轮次，保住自己的命。',
+    summary: '闸工渗透铁脉隔离区，对抗脱离主控制域的自动化单元，比谁能撑过更多轮次。',
     available: true,
   },
   {
     id: 'defense',
     name: '保卫模式',
-    summary: '保卫家园。据点防守，类似塔防与无尽生存。',
+    summary: '守住核心主机舱或隔离闸门。据点防守，类似塔防与无尽生存。',
     available: false,
   },
   {
     id: 'collect',
     name: '收集模式',
-    summary: '在迷宫中收集钥匙等目标即可通关。',
+    summary: '在堡垒内回收实验记录或密级钥匙即可通关。',
     available: false,
   },
 ];

@@ -34,7 +34,7 @@
   padding: 6px 8px;
   border: 0;
   background: transparent;
-  color: #c5d4e0;
+  color: var(--paper);
   font-family: inherit;
   font-size: 13px;
   line-height: 1;
@@ -48,17 +48,17 @@
 
 .play-bar__btn:hover,
 .play-bar__btn:focus-visible {
-  color: #e8f4ff;
+  color: var(--stamp);
   outline: none;
 }
 
 .play-bar__credits {
-  color: #e8f4ff;
+  color: var(--paper);
   font-variant-numeric: tabular-nums;
 }
 
 .play-bar__credits-icon {
-  color: #d4a03a;
+  color: var(--brass);
 }
 
 .play-bar__icon {

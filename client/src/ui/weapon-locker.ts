@@ -10,6 +10,7 @@ import {
   type WeaponId,
 } from '../weapons/catalog';
 import { rateWeapon } from '../weapons/ratings';
+import { sealMarkup, starMarkup } from './seal';
 import './weapon-locker.css';
 
 type LockerHandlers = {
@@ -35,10 +36,14 @@ export function mountWeaponLocker(
   overlay.innerHTML = `
     <div class="locker__backdrop"></div>
     <div class="locker__panel" role="dialog" aria-modal="true" aria-labelledby="locker-title">
+      <div class="locker__filehead">
+        <span class="locker__classif">绝密</span>
+        <span>编制表 АБ-W</span>
+      </div>
       <div class="locker__top">
         <div>
-          <p class="locker__brand">ATOMIC BASTION</p>
-          <h2 class="locker__title" id="locker-title">武器柜</h2>
+          <p class="locker__brand">ОТР-3 · 第三特别处置处</p>
+          <h2 class="locker__title" id="locker-title">${starMarkup('star')}武器柜</h2>
         </div>
         <button type="button" class="locker__close">
           <svg class="locker__close-icon" viewBox="0 0 16 16" aria-hidden="true">
@@ -62,6 +67,7 @@ export function mountWeaponLocker(
           <div class="locker__slots"></div>
         </section>
       </div>
+      <div class="locker__seal">${sealMarkup('seal', { id: 'locker-seal-arc' })}</div>
     </div>
   `;
 

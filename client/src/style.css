@@ -1,3 +1,16 @@
+:root {
+  --paper: #d4c2a0;
+  --paper-dark: #c4ad86;
+  --ink: #2c2418;
+  --ink-muted: #5c5346;
+  --stamp: #a32020;
+  --concrete: #6e6a62;
+  --concrete-dark: #4a4740;
+  --soot: #2a2722;
+  --brass: #b8923a;
+  --font-ui: ui-monospace, "Courier New", "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", monospace;
+}
+
 *,
 *::before,
 *::after {
@@ -13,11 +26,28 @@ body,
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #0b0f14;
+  background: var(--soot);
+  color: var(--ink);
+  font-family: var(--font-ui);
 }
 
 canvas {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.seal {
+  display: block;
+  width: 96px;
+  height: 96px;
+  color: var(--stamp);
+  pointer-events: none;
+}
+
+.star {
+  display: block;
+  width: 18px;
+  height: 18px;
+  color: var(--stamp);
 }

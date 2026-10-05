@@ -1,4 +1,5 @@
 import { getWeapon, type WeaponId } from '../weapons/catalog';
+import { THEME, THEME_FONT } from './theme';
 
 export const WEAPON_SLOT_COUNT = 4;
 
@@ -61,19 +62,19 @@ function drawVitals(
     drawReloadMeter(context, x + barWidth + 8, ammo.top, y + barHeight, vitals);
   }
 
-  context.fillStyle = 'rgba(11, 15, 20, 0.72)';
+  context.fillStyle = THEME.chrome;
   context.fillRect(x - 2, y - 2, barWidth + 4, barHeight + 4);
 
-  context.fillStyle = '#3a1014';
+  context.fillStyle = THEME.hpTrack;
   context.fillRect(x, y, barWidth, barHeight);
 
-  context.fillStyle = ratio <= 0.28 ? '#ff3b3b' : '#d31f2a';
+  context.fillStyle = ratio <= 0.28 ? THEME.hpLow : THEME.hpFill;
   context.fillRect(x, y, Math.floor(barWidth * ratio), barHeight);
 
-  context.fillStyle = 'rgba(255, 255, 255, 0.16)';
+  context.fillStyle = 'rgba(212, 194, 160, 0.22)';
   context.fillRect(x, y, Math.floor(barWidth * ratio), 2);
 
-  context.strokeStyle = '#8a2a32';
+  context.strokeStyle = THEME.hpBorder;
   context.lineWidth = 1;
   context.strokeRect(x + 0.5, y + 0.5, barWidth - 1, barHeight - 1);
 }
@@ -181,7 +182,7 @@ function drawAmmoIcons(
       context.drawImage(icon, -iconH / 2, -iconW / 2, iconH, iconW);
       context.restore();
     } else {
-      context.fillStyle = '#d4a03a';
+      context.fillStyle = THEME.brass;
       context.fillRect(x + 2, y + 1, iconW - 4, iconH - 2);
     }
   }
@@ -204,31 +205,31 @@ function drawReloadMeter(
   const deny = Math.max(0, Math.min(1, vitals.deniedFire));
   const filled = Math.max(1, Math.floor(height * progress));
 
-  context.fillStyle = 'rgba(11, 15, 20, 0.72)';
+  context.fillStyle = THEME.chrome;
   context.fillRect(x - 2, top - 2, width + 4, height + 4);
 
-  context.fillStyle = '#1a2430';
+  context.fillStyle = THEME.concreteDark;
   context.fillRect(x, top, width, height);
 
-  context.fillStyle = deny > 0 ? '#ffb347' : '#7ec8ff';
+  context.fillStyle = deny > 0 ? THEME.hazard : THEME.stamp;
   context.globalAlpha = deny > 0 ? 0.55 + deny * 0.45 : 0.92;
   context.fillRect(x, top + height - filled, width, filled);
   context.globalAlpha = 1;
 
-  context.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  context.fillStyle = 'rgba(212, 194, 160, 0.22)';
   context.fillRect(x, top + height - filled, width, 2);
 
-  context.strokeStyle = deny > 0 ? '#d4a03a' : 'rgba(126, 200, 255, 0.45)';
+  context.strokeStyle = deny > 0 ? THEME.brass : 'rgba(163, 32, 32, 0.55)';
   context.lineWidth = 1;
   context.strokeRect(x + 0.5, top + 0.5, width - 1, height - 1);
 
   context.textAlign = 'left';
   context.textBaseline = 'middle';
   context.font = deny > 0
-    ? '600 12px ui-sans-serif, system-ui, sans-serif'
-    : '12px ui-sans-serif, system-ui, sans-serif';
+    ? `600 12px ${THEME_FONT}`
+    : `12px ${THEME_FONT}`;
   context.globalAlpha = deny > 0 ? 0.7 + deny * 0.3 : 0.8;
-  context.fillStyle = deny > 0 ? '#ffd27a' : '#8aa4b8';
+  context.fillStyle = deny > 0 ? THEME.hazard : THEME.paper;
   context.fillText(deny > 0 ? '还在装填' : '装填', x + width + 8, top + height / 2);
   context.globalAlpha = 1;
 }
@@ -272,10 +273,10 @@ function drawSlot(
   context.textAlign = 'right';
   context.textBaseline = 'middle';
   context.globalAlpha = active ? 0.9 : filled ? 0.45 : 0.22;
-  context.fillStyle = active ? '#e8f4ff' : '#8aa4b8';
+  context.fillStyle = active ? THEME.paper : THEME.paperDark;
   context.font = active
-    ? '600 12px ui-sans-serif, system-ui, sans-serif'
-    : '12px ui-sans-serif, system-ui, sans-serif';
+    ? `600 12px ${THEME_FONT}`
+    : `12px ${THEME_FONT}`;
   context.fillText(
     filled && slot.weaponId ? getWeapon(slot.weaponId).name : '空',
     iconX - 8,
@@ -289,7 +290,7 @@ function drawSlot(
   if (slot.icon) {
     context.drawImage(slot.icon, iconX, iconY, iconSize, iconSize);
   } else {
-    context.strokeStyle = '#8aa4b8';
+    context.strokeStyle = THEME.paperDark;
     context.lineWidth = 1;
     context.strokeRect(iconX + 3.5, iconY + 3.5, iconSize - 7, iconSize - 7);
   }
@@ -306,13 +307,11 @@ function drawIndexBadge(
   active: boolean,
 ): void {
   const size = 11;
-  context.fillStyle = active
-    ? 'rgba(126, 200, 255, 0.92)'
-    : 'rgba(11, 15, 20, 0.7)';
+  context.fillStyle = active ? THEME.stamp : THEME.chrome;
   context.fillRect(x, y, size, size);
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.fillStyle = active ? '#0b0f14' : 'rgba(196, 214, 226, 0.75)';
-  context.font = '600 9px ui-sans-serif, system-ui, sans-serif';
+  context.fillStyle = active ? THEME.paper : THEME.paperDark;
+  context.font = `600 9px ${THEME_FONT}`;
   context.fillText(String(index), x + size / 2, y + size / 2 + 0.5);
 }

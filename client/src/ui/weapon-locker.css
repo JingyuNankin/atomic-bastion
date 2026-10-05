@@ -17,7 +17,7 @@
 .locker__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(7, 10, 14, 0.72);
+  background: rgba(42, 39, 34, 0.72);
 }
 
 .locker__panel {
@@ -29,8 +29,34 @@
   max-height: calc(100vh - 48px);
   overflow: auto;
   padding: 20px 22px 22px;
-  border: 1px solid rgba(126, 200, 255, 0.28);
-  background: rgba(11, 15, 20, 0.96);
+  border: 1px solid var(--ink);
+  background-color: var(--paper);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 15px,
+      rgba(44, 36, 24, 0.04) 15px,
+      rgba(44, 36, 24, 0.04) 16px
+    ),
+    linear-gradient(180deg, #dcc9a8 0%, var(--paper-dark) 100%);
+  box-shadow: 8px 10px 0 rgba(42, 39, 34, 0.32);
+}
+
+.locker__filehead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--ink-muted);
+  color: var(--ink-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.locker__classif {
+  color: var(--stamp);
+  font-weight: 700;
 }
 
 .locker__top {
@@ -41,18 +67,21 @@
 }
 
 .locker__brand {
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.08em;
 }
 
 .locker__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 4px;
-  color: #e8f4ff;
+  color: var(--ink);
   font-size: 26px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .locker__close-icon {
@@ -70,7 +99,7 @@
   padding: 6px 8px;
   border: 0;
   background: transparent;
-  color: #c5d4e0;
+  color: var(--ink-muted);
   font-family: inherit;
   font-size: 13px;
   cursor: pointer;
@@ -80,12 +109,12 @@
 .locker__close:focus-visible,
 .locker__clear:hover,
 .locker__clear:focus-visible {
-  color: #e8f4ff;
+  color: var(--stamp);
   outline: none;
 }
 
 .locker__hint {
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 13px;
   line-height: 1.55;
 }
@@ -106,10 +135,10 @@
 
 .locker__col-title {
   margin-bottom: 8px;
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
 }
 
 .locker__arsenal,
@@ -127,8 +156,8 @@
   gap: 4px;
   min-height: 64px;
   padding: 4px 6px 4px 4px;
-  border: 1px dashed rgba(138, 164, 184, 0.28);
-  color: #8aa4b8;
+  border: 1px dashed rgba(44, 36, 24, 0.28);
+  color: var(--ink-muted);
 }
 
 .locker__slot-pick {
@@ -148,31 +177,31 @@
 }
 
 .locker__slot.is-empty {
-  background: rgba(8, 12, 16, 0.45);
-  border: 1px dashed rgba(138, 164, 184, 0.55);
+  background: rgba(44, 36, 24, 0.06);
+  border: 1px dashed rgba(44, 36, 24, 0.45);
 }
 
 .locker__slot.is-filled {
   border-style: solid;
-  border-color: rgba(126, 200, 255, 0.28);
-  color: #c5d4e0;
+  border-color: rgba(44, 36, 24, 0.35);
+  color: var(--ink);
 }
 
 .locker__slot-hint {
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 12px;
-  letter-spacing: 0.12em;
-  opacity: 0.62;
+  letter-spacing: 0.08em;
+  opacity: 0.72;
 }
 
 .locker__slot.is-active {
-  border-color: #7ec8ff;
-  color: #e8f4ff;
+  border-color: var(--stamp);
+  color: var(--ink);
 }
 
 .locker__slot:hover,
 .locker__slot-pick:focus-visible {
-  border-color: #7ec8ff;
+  border-color: var(--stamp);
 }
 
 .locker__slot-pick:focus-visible {
@@ -181,7 +210,7 @@
 
 .locker__slot-index {
   flex-shrink: 0;
-  color: #7ec8ff;
+  color: var(--stamp);
   font-size: 12px;
   font-weight: 600;
 }
@@ -194,7 +223,7 @@
 .locker__slot-name,
 .locker__card-name {
   overflow: hidden;
-  color: #e8f4ff;
+  color: var(--ink);
   font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -204,7 +233,7 @@
 .locker__card-model {
   margin-top: 2px;
   overflow: hidden;
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -237,21 +266,21 @@
 .locker__card:hover,
 .locker__card:focus-visible,
 .locker__card.is-selected {
-  color: #e8f4ff;
+  color: var(--ink);
   outline: none;
 }
 
 .locker__card.is-selected {
-  box-shadow: inset 2px 0 0 #7ec8ff;
+  box-shadow: inset 2px 0 0 var(--stamp);
 }
 
 .locker__card.is-selected .locker__card-name {
-  color: #7ec8ff;
+  color: var(--stamp);
 }
 
 .locker__card-badge {
   margin-left: auto;
-  color: #7ec8ff;
+  color: var(--stamp);
   font-size: 11px;
   font-weight: 600;
 }
@@ -276,26 +305,26 @@
 }
 
 .locker__detail-model {
-  color: #7ec8ff;
+  color: var(--stamp);
   font-size: 13px;
   letter-spacing: 0.04em;
 }
 
 .locker__detail-name {
   margin-top: 2px;
-  color: #e8f4ff;
+  color: var(--ink);
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .locker__detail-role {
   margin-top: 4px;
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 13px;
 }
 
 .locker__blurb {
-  color: #c5d4e0;
+  color: var(--ink);
   font-size: 14px;
   line-height: 1.7;
 }
@@ -313,20 +342,34 @@
 }
 
 .locker__stat-label {
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 11px;
 }
 
 .locker__stat-value {
-  color: #e8f4ff;
+  color: var(--ink);
   font-size: 15px;
 }
 
 .locker__place-hint {
   margin-top: auto;
-  color: #8aa4b8;
+  color: var(--ink-muted);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.locker__seal {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  transform: rotate(-12deg);
+  opacity: 0.58;
+  z-index: 0;
+}
+
+.locker__panel > *:not(.locker__seal) {
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 820px) {

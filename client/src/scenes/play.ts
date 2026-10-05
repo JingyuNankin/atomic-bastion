@@ -21,10 +21,9 @@ import {
 import { createLoadout, firstLoadoutWeapon, type Loadout } from '../game/loadout';
 import { getWeaponArt, type GameArt } from '../systems/game-art';
 import { drawWeaponHud, weaponSlots } from '../ui/hud';
+import { THEME } from '../ui/theme';
 import { getWeapon, listDesignedWeapons, type WeaponId } from '../weapons/catalog';
 
-const BACKGROUND = '#0b0f14';
-const ARENA_FILL = '#121820';
 const ARENA_INSET = 48;
 
 export type PlayWorld = {
@@ -93,37 +92,22 @@ export function createPlayWorld(): PlayWorld {
       updateCombat(combat, player, projectiles, dt, firing);
       updateProjectiles(projectiles, dt, arena);
     },
-    draw(context, width, height, time) {
-      context.fillStyle = BACKGROUND;
+    draw(context, width, height, _time) {
+      context.fillStyle = THEME.soot;
       context.fillRect(0, 0, width, height);
 
       const arena = arenaOf(width, height);
-      const pulse = 0.04 + Math.sin(time / 800) * 0.02;
 
-      context.fillStyle = ARENA_FILL;
+      context.fillStyle = THEME.concreteFloor;
       context.fillRect(
         arena.left,
         arena.top,
         arena.right - arena.left,
         arena.bottom - arena.top,
       );
-      drawGrid(context, arena);
-      context.fillStyle = `rgba(80, 140, 180, ${pulse})`;
-      context.fillRect(
-        arena.left,
-        arena.top,
-        arena.right - arena.left,
-        arena.bottom - arena.top,
-      );
-
-      context.strokeStyle = 'rgba(126, 200, 255, 0.35)';
-      context.lineWidth = 2;
-      context.strokeRect(
-        arena.left + 1,
-        arena.top + 1,
-        arena.right - arena.left - 2,
-        arena.bottom - arena.top - 2,
-      );
+      drawConcreteStains(context, arena);
+      drawJoints(context, arena);
+      drawHazardFrame(context, arena);
 
       drawPlayer(context, player, art);
       drawProjectiles(context, projectiles, art);
@@ -167,23 +151,21 @@ export function drawMenuBackdrop(
   context: CanvasRenderingContext2D,
   width: number,
   height: number,
-  time: number,
+  _time?: number,
 ): void {
-  const pulse = 0.06 + Math.sin(time / 900) * 0.03;
-
-  context.fillStyle = BACKGROUND;
+  context.fillStyle = THEME.soot;
   context.fillRect(0, 0, width, height);
-  context.fillStyle = `rgba(120, 200, 255, ${pulse})`;
-  context.fillRect(0, 0, width, height);
+  context.fillStyle = THEME.concreteDark;
+  context.fillRect(48, 48, Math.max(0, width - 96), Math.max(0, height - 96));
 }
 
-function drawGrid(
+function drawJoints(
   context: CanvasRenderingContext2D,
   arena: Arena,
 ): void {
   const step = 48;
   context.beginPath();
-  context.strokeStyle = 'rgba(120, 160, 190, 0.12)';
+  context.strokeStyle = THEME.joint;
   context.lineWidth = 1;
 
   for (let x = arena.left; x <= arena.right; x += step) {
@@ -197,4 +179,63 @@ function drawGrid(
   }
 
   context.stroke();
+}
+
+function drawConcreteStains(
+  context: CanvasRenderingContext2D,
+  arena: Arena,
+): void {
+  const width = arena.right - arena.left;
+  const height = arena.bottom - arena.top;
+  const stains = [
+    [0.16, 0.2, 96, 42],
+    [0.58, 0.46, 128, 56],
+    [0.32, 0.7, 72, 34],
+    [0.76, 0.16, 54, 54],
+  ] as const;
+
+  context.fillStyle = THEME.stain;
+  for (const [nx, ny, stainWidth, stainHeight] of stains) {
+    context.fillRect(
+      arena.left + width * nx,
+      arena.top + height * ny,
+      stainWidth,
+      stainHeight,
+    );
+  }
+}
+
+function drawHazardFrame(
+  context: CanvasRenderingContext2D,
+  arena: Arena,
+): void {
+  const thickness = 6;
+  const left = arena.left;
+  const top = arena.top;
+  const width = arena.right - arena.left;
+  const height = arena.bottom - arena.top;
+
+  context.save();
+  context.beginPath();
+  context.rect(left, top, width, height);
+  context.rect(
+    left + thickness,
+    top + thickness,
+    width - thickness * 2,
+    height - thickness * 2,
+  );
+  context.clip('evenodd');
+
+  context.fillStyle = THEME.soot;
+  context.fillRect(left, top, width, height);
+
+  context.fillStyle = THEME.hazard;
+  context.translate(left, top);
+  context.rotate(-Math.PI / 4);
+  const stripe = 10;
+  const span = Math.max(width, height) * 2;
+  for (let x = -span; x < span; x += stripe * 2) {
+    context.fillRect(x, -span, stripe, span * 2);
+  }
+  context.restore();
 }
