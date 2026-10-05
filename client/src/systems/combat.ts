@@ -1,4 +1,5 @@
 import {
+  footPoint,
   muzzlePoint,
   type Player,
 } from '../entities/player';
@@ -92,6 +93,29 @@ function tryFire(
 
   const origin = muzzlePoint(player);
   const baseAngle = directionAngle(player.facing);
+  const shot = getWeaponProjectile(player.weaponId);
+  const facingX = Math.cos(baseAngle);
+  const facingY = Math.sin(baseAngle);
+
+  if (shot.style === 'flame') {
+    upsertFlame(projectiles, {
+      x: origin.x,
+      y: origin.y,
+      vx: facingX,
+      vy: facingY,
+      projectileId: weapon.projectileId,
+      life: 0.12,
+      maxLife: 0.12,
+      length: weapon.range,
+      spread: weapon.spread,
+    });
+    player.ammoInMag -= 1;
+    combat.fireCooldown = 1 / weapon.fireRate;
+    player.recoil = 0;
+    player.muzzleFlash = 1;
+    return;
+  }
+
   const count = Math.max(1, weapon.projectileCount);
 
   for (let i = 0; i < count; i += 1) {
@@ -100,13 +124,14 @@ function tryFire(
     }
 
     const spread =
-      count === 1
-        ? (Math.random() - 0.5) * 2 * weapon.spread
-        : ((i / (count - 1)) * 2 - 1) * weapon.spread;
+      shot.style === 'beam'
+        ? 0
+        : count === 1
+          ? (Math.random() - 0.5) * 2 * weapon.spread
+          : ((i / (count - 1)) * 2 - 1) * weapon.spread;
     const angle = baseAngle + (spread * Math.PI) / 180;
     const dirX = Math.cos(angle);
     const dirY = Math.sin(angle);
-    const shot = getWeaponProjectile(player.weaponId);
 
     if (shot.style === 'beam') {
       projectiles.push({
@@ -122,6 +147,31 @@ function tryFire(
       continue;
     }
 
+    if (shot.style === 'grenade') {
+      const fuseTime = weapon.fuseTime;
+      const flightTime = fuseTime * 0.62;
+      const flightSpeed = (weapon.range * 0.82) / Math.max(flightTime, 0.05);
+      const ground = footPoint(player);
+      const startHop = Math.max(8, ground.y - origin.y);
+      projectiles.push({
+        x: ground.x,
+        y: ground.y,
+        vx: dirX * flightSpeed,
+        vy: dirY * flightSpeed,
+        projectileId: weapon.projectileId,
+        life: fuseTime + 0.28,
+        maxLife: fuseTime + 0.28,
+        age: 0,
+        flightTime,
+        fuseTime,
+        hop: startHop,
+        startHop,
+        spin: 0,
+        blastRadius: weapon.blastRadius,
+      });
+      continue;
+    }
+
     projectiles.push({
       x: origin.x,
       y: origin.y,
@@ -133,6 +183,33 @@ function tryFire(
 
   player.ammoInMag -= 1;
   combat.fireCooldown = 1 / weapon.fireRate;
-  player.recoil = getWeaponProjectile(player.weaponId).style === 'beam' ? 0 : 1;
+  player.recoil = shot.style === 'beam' ? 0 : 1;
   player.muzzleFlash = 1;
+}
+
+function upsertFlame(
+  projectiles: Projectile[],
+  next: Projectile,
+): void {
+  for (let i = projectiles.length - 1; i >= 0; i -= 1) {
+    const shot = projectiles[i];
+
+    if (shot.projectileId !== next.projectileId || shot.spread === undefined) {
+      continue;
+    }
+
+    shot.x = next.x;
+    shot.y = next.y;
+    shot.vx = next.vx;
+    shot.vy = next.vy;
+    shot.life = next.life;
+    shot.maxLife = next.maxLife;
+    shot.length = next.length;
+    shot.spread = next.spread;
+    return;
+  }
+
+  if (projectiles.length < MAX_SHOTS) {
+    projectiles.push(next);
+  }
 }

@@ -245,7 +245,7 @@
       "reloadTime": 2.2,
       "projectileSpeed": 280,
       "knockback": 8,
-      "spread": 12,
+      "spread": 25,
       "penetration": 8,
       "projectileCount": 1,
       "range": 170,

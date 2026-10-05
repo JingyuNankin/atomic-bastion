@@ -9,7 +9,7 @@ export type WeaponRatings = {
   power: Tier;
   range: Reach;
   reload: Tempo;
-  fireMode: '点射' | '连发';
+  fireMode: '点射' | '连发' | '喷射';
   trait: string;
 };
 
@@ -21,7 +21,12 @@ export function rateWeapon(weapon: WeaponDef): WeaponRatings {
     power: burst >= 40 ? '高' : burst >= 11 ? '中' : '低',
     range: weapon.range >= 560 ? '远' : weapon.range >= 360 ? '中' : '近',
     reload: weapon.reloadTime <= 1.4 ? '快' : weapon.reloadTime <= 1.9 ? '中' : '慢',
-    fireMode: weapon.fireMode === 'auto' ? '连发' : '点射',
+    fireMode:
+      weapon.id === 'w08-flamethrower'
+        ? '喷射'
+        : weapon.fireMode === 'auto'
+          ? '连发'
+          : '点射',
     trait: weaponTrait(weapon),
   };
 }

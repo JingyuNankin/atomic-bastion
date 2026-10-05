@@ -89,6 +89,15 @@ export function muzzlePoint(player: Player): { x: number; y: number } {
   };
 }
 
+export function footPoint(player: Player): { x: number; y: number } {
+  const dir = unitFacing(player.facing);
+  const reach = MUZZLE_REACH * 0.45;
+  return {
+    x: player.x + dir.x * reach,
+    y: player.y + dir.y * reach,
+  };
+}
+
 export function drawPlayer(
   context: CanvasRenderingContext2D,
   player: Player,
