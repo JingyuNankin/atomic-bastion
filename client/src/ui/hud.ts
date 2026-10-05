@@ -3,6 +3,38 @@ import { THEME, THEME_FONT } from './theme';
 
 export const WEAPON_SLOT_COUNT = 4;
 
+const SLOT_WIDTH = 108;
+const SLOT_HEIGHT = 32;
+const SLOT_GAP = 6;
+const SLOT_EDGE = 10;
+const SLOT_TOP_MIN = 56;
+
+export type WeaponHudLayout = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  slotHeight: number;
+  gap: number;
+};
+
+export function weaponHudLayout(
+  width: number,
+  height: number,
+  count = WEAPON_SLOT_COUNT,
+): WeaponHudLayout {
+  const stack = count * SLOT_HEIGHT + Math.max(0, count - 1) * SLOT_GAP;
+
+  return {
+    x: width - SLOT_EDGE - SLOT_WIDTH,
+    y: Math.max(SLOT_TOP_MIN, (height - stack) / 2),
+    width: SLOT_WIDTH,
+    height: stack,
+    slotHeight: SLOT_HEIGHT,
+    gap: SLOT_GAP,
+  };
+}
+
 export type WeaponSlot = {
   weaponId: WeaponId | null;
   icon: HTMLCanvasElement | null;
@@ -241,16 +273,12 @@ function drawWeaponSlots(
   weaponId: WeaponId,
   slots: WeaponSlot[],
 ): void {
-  const slotWidth = 108;
-  const slotHeight = 32;
-  const gap = 6;
-  const stack = slots.length * slotHeight + (slots.length - 1) * gap;
-  const x = width - 10 - slotWidth;
-  let y = Math.max(56, (height - stack) / 2);
+  const layout = weaponHudLayout(width, height, slots.length);
+  let y = layout.y;
 
   slots.forEach((slot, index) => {
-    drawSlot(context, x, y, slotWidth, slotHeight, index + 1, slot, weaponId);
-    y += slotHeight + gap;
+    drawSlot(context, layout.x, y, layout.width, layout.slotHeight, index + 1, slot, weaponId);
+    y += layout.slotHeight + layout.gap;
   });
 }
 

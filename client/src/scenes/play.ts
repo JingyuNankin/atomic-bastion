@@ -20,7 +20,7 @@ import {
 } from '../systems/combat';
 import { createLoadout, firstLoadoutWeapon, type Loadout } from '../game/loadout';
 import { getWeaponArt, type GameArt } from '../systems/game-art';
-import { drawWeaponHud, weaponSlots } from '../ui/hud';
+import { drawWeaponHud, weaponHudLayout, weaponSlots } from '../ui/hud';
 import { THEME } from '../ui/theme';
 import { getWeapon, listDesignedWeapons, type WeaponId } from '../weapons/catalog';
 
@@ -107,7 +107,7 @@ export function createPlayWorld(): PlayWorld {
       );
       drawConcreteStains(context, arena);
       drawJoints(context, arena);
-      drawHazardFrame(context, arena);
+      drawArenaEdge(context, arena, width, height);
 
       drawPlayer(context, player, art);
       drawProjectiles(context, projectiles, art);
@@ -205,37 +205,38 @@ function drawConcreteStains(
   }
 }
 
-function drawHazardFrame(
+function drawArenaEdge(
   context: CanvasRenderingContext2D,
   arena: Arena,
+  width: number,
+  height: number,
 ): void {
-  const thickness = 6;
+  const lip = 4;
   const left = arena.left;
   const top = arena.top;
-  const width = arena.right - arena.left;
-  const height = arena.bottom - arena.top;
+  const right = arena.right;
+  const bottom = arena.bottom;
+  const spanW = right - left;
+  const spanH = bottom - top;
+  const slots = weaponHudLayout(width, height);
+  const pad = 16;
+  const bandTop = Math.max(top + lip, slots.y - pad);
+  const bandBottom = Math.min(bottom - lip, slots.y + slots.height + pad);
 
   context.save();
-  context.beginPath();
-  context.rect(left, top, width, height);
-  context.rect(
-    left + thickness,
-    top + thickness,
-    width - thickness * 2,
-    height - thickness * 2,
-  );
-  context.clip('evenodd');
-
+  context.globalAlpha = 0.72;
   context.fillStyle = THEME.soot;
-  context.fillRect(left, top, width, height);
+  context.fillRect(left, top, spanW, lip);
+  context.fillRect(left, bottom - lip, spanW, lip);
+  context.fillRect(left, top + lip, lip, Math.max(0, spanH - lip * 2));
 
-  context.fillStyle = THEME.hazard;
-  context.translate(left, top);
-  context.rotate(-Math.PI / 4);
-  const stripe = 10;
-  const span = Math.max(width, height) * 2;
-  for (let x = -span; x < span; x += stripe * 2) {
-    context.fillRect(x, -span, stripe, span * 2);
+  if (bandTop > top + lip) {
+    context.fillRect(right - lip, top + lip, lip, bandTop - (top + lip));
   }
+
+  if (bandBottom < bottom - lip) {
+    context.fillRect(right - lip, bandBottom, lip, bottom - lip - bandBottom);
+  }
+
   context.restore();
 }
