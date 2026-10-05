@@ -1,5 +1,5 @@
 import { DIRECTIONS, type Direction } from '../game/direction';
-import { createBoxGlRenderer } from './player-gl';
+import { createBoxGlRenderer, type OrthoBounds } from './player-gl';
 import { playerBoxes, type Box } from './player-model';
 import { boxesExtent, centerBoxes } from './weapon-model';
 
@@ -30,7 +30,10 @@ const YAW: Record<Direction, number> = {
   nw: (Math.PI * 5) / 4,
 };
 
-export function sheetCell(direction: Direction): {
+export function sheetCell(
+  direction: Direction,
+  cell: { width: number; height: number } = PLAYER_CELL,
+): {
   sx: number;
   sy: number;
   sw: number;
@@ -38,18 +41,22 @@ export function sheetCell(direction: Direction): {
 } {
   const { col, row } = CELL[direction];
   return {
-    sx: col * PLAYER_CELL.width,
-    sy: row * PLAYER_CELL.height,
-    sw: PLAYER_CELL.width,
-    sh: PLAYER_CELL.height,
+    sx: col * cell.width,
+    sy: row * cell.height,
+    sw: cell.width,
+    sh: cell.height,
   };
 }
 
-export function bakeBoxSheet(boxes: Box[]): HTMLCanvasElement {
-  const renderer = createBoxGlRenderer(boxes);
+export function bakeBoxSheet(
+  boxes: Box[],
+  frame: { width: number; height: number } = PLAYER_CELL,
+  ortho?: OrthoBounds,
+): HTMLCanvasElement {
+  const renderer = createBoxGlRenderer(boxes, ortho);
   const sheet = document.createElement('canvas');
-  sheet.width = PLAYER_CELL.width * 3;
-  sheet.height = PLAYER_CELL.height * 3;
+  sheet.width = frame.width * 3;
+  sheet.height = frame.height * 3;
   const context = sheet.getContext('2d');
 
   if (!context) {
@@ -63,12 +70,8 @@ export function bakeBoxSheet(boxes: Box[]): HTMLCanvasElement {
   try {
     for (const direction of DIRECTIONS) {
       const { col, row } = CELL[direction];
-      const frame = renderer.render(
-        YAW[direction],
-        PLAYER_CELL.width,
-        PLAYER_CELL.height,
-      );
-      context.drawImage(frame, col * PLAYER_CELL.width, row * PLAYER_CELL.height);
+      const frameImage = renderer.render(YAW[direction], frame.width, frame.height);
+      context.drawImage(frameImage, col * frame.width, row * frame.height);
     }
   } finally {
     renderer.destroy();

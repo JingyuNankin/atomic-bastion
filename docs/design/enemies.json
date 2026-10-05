@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "enemies": [
+    {
+      "id": "e01-hyena",
+      "name": "机械鬣狗",
+      "nameEn": "Mechanical Hyena",
+      "code": "鬣齿-4",
+      "role": "近战冲锋",
+      "blurb": "「鬣齿-4」型巡舱机组。铁脉把检修巷道里的牵引底盘改成了四足，肩线压到人持枪的高度，只咬近处的东西。",
+      "enabled": true,
+      "tier": "杂兵",
+      "hp": 36,
+      "speed": 168,
+      "attack": "melee",
+      "attackName": "撕咬",
+      "damage": 14,
+      "attackRange": 34,
+      "attackReach": 28,
+      "attackInterval": 0.85,
+      "attackKnockback": 22,
+      "knockbackResist": 0.35,
+      "hitRadius": 36,
+      "hitLift": 48
+    }
+  ]
+}

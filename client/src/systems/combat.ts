@@ -108,6 +108,10 @@ function tryFire(
       maxLife: 0.12,
       length: weapon.range,
       spread: weapon.spread,
+      damage: weapon.damage,
+      knockback: weapon.knockback,
+      pierce: weapon.penetration,
+      hitInterval: 1 / weapon.fireRate,
     });
     player.ammoInMag -= 1;
     combat.fireCooldown = 1 / weapon.fireRate;
@@ -143,6 +147,9 @@ function tryFire(
         life: 0.14,
         maxLife: 0.14,
         length: Math.max(weapon.range, 1600),
+        damage: weapon.damage,
+        knockback: weapon.knockback,
+        pierce: weapon.penetration,
       });
       continue;
     }
@@ -168,6 +175,9 @@ function tryFire(
         startHop,
         spin: 0,
         blastRadius: weapon.blastRadius,
+        damage: weapon.damage,
+        knockback: weapon.knockback,
+        pierce: weapon.penetration,
       });
       continue;
     }
@@ -178,6 +188,10 @@ function tryFire(
       vx: dirX * weapon.projectileSpeed,
       vy: dirY * weapon.projectileSpeed,
       projectileId: weapon.projectileId,
+      damage: weapon.damage,
+      knockback: weapon.knockback,
+      pierce: weapon.penetration,
+      blastRadius: weapon.blastRadius,
     });
   }
 
@@ -206,6 +220,9 @@ function upsertFlame(
     shot.maxLife = next.maxLife;
     shot.length = next.length;
     shot.spread = next.spread;
+    shot.damage = next.damage;
+    shot.knockback = next.knockback;
+    shot.hitInterval = next.hitInterval;
     return;
   }
 

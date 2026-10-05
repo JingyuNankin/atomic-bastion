@@ -19,6 +19,12 @@ export type Projectile = {
   startHop?: number;
   spin?: number;
   blastRadius?: number;
+  damage?: number;
+  knockback?: number;
+  pierce?: number;
+  hitInterval?: number;
+  boomed?: boolean;
+  struck?: number[];
 };
 
 const DESPAWN_PAD = 48;

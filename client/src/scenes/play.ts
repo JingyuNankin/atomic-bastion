@@ -1,3 +1,4 @@
+import { createEnemy, drawEnemy, updateEnemies, type Enemy } from '../entities/enemy';
 import {
   createPlayer,
   drawPlayer,
@@ -18,6 +19,7 @@ import {
   resetCombat,
   updateCombat,
 } from '../systems/combat';
+import { resolveProjectileHits } from '../systems/hits';
 import { createLoadout, firstLoadoutWeapon, type Loadout } from '../game/loadout';
 import { getWeaponArt, type GameArt } from '../systems/game-art';
 import { drawWeaponHud, weaponHudLayout, weaponSlots } from '../ui/hud';
@@ -50,6 +52,7 @@ export function createPlayWorld(): PlayWorld {
   let art: GameArt | null = null;
   let loadout: Loadout = createLoadout();
   const player: Player = createPlayer(0, 0);
+  const enemies: Enemy[] = [];
   const projectiles: Projectile[] = [];
   const combat = createCombat();
 
@@ -78,8 +81,17 @@ export function createPlayWorld(): PlayWorld {
       player.hp = player.maxHp;
       equipWeapon(player, firstLoadoutWeapon(loadout));
       projectiles.length = 0;
+      enemies.length = 0;
       resetCombat(combat);
-      updatePlayer(player, 0, { x: 0, y: 0 }, arenaOf(width, height));
+      const arena = arenaOf(width, height);
+      updatePlayer(player, 0, { x: 0, y: 0 }, arena);
+      enemies.push(
+        createEnemy(
+          'e01-hyena',
+          player.x,
+          Math.max(arena.top + 120, player.y - 320),
+        ),
+      );
     },
     equip(weaponId) {
       getWeapon(weaponId);
@@ -91,6 +103,8 @@ export function createPlayWorld(): PlayWorld {
       updatePlayer(player, dt, axis, arena);
       updateCombat(combat, player, projectiles, dt, firing);
       updateProjectiles(projectiles, dt, arena);
+      updateEnemies(enemies, player, dt, arena);
+      resolveProjectileHits(projectiles, enemies, dt);
     },
     draw(context, width, height, _time) {
       context.fillStyle = THEME.soot;
@@ -109,7 +123,26 @@ export function createPlayWorld(): PlayWorld {
       drawJoints(context, arena);
       drawArenaEdge(context, arena, width, height);
 
-      drawPlayer(context, player, art);
+      const drawOrder = [
+        {
+          y: player.y,
+          paint: () => {
+            drawPlayer(context, player, art);
+          },
+        },
+        ...enemies.map((enemy) => ({
+          y: enemy.y,
+          paint: () => {
+            drawEnemy(context, enemy, art?.enemies[enemy.kind] ?? null);
+          },
+        })),
+      ];
+      drawOrder.sort((a, b) => a.y - b.y);
+
+      for (const item of drawOrder) {
+        item.paint();
+      }
+
       drawProjectiles(context, projectiles, art);
       const equipped = getWeapon(player.weaponId);
       drawWeaponHud(

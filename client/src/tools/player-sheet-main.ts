@@ -1,3 +1,4 @@
+import { getEnemy } from '../enemies/catalog';
 import {
   bakeBoxSheet,
   bakeFittedSprite,
@@ -6,6 +7,7 @@ import {
   playerSheetToPng,
   sheetCell,
 } from '../render/bake-player-sheet';
+import { HYENA_CELL, HYENA_ORTHO, hyenaBoxes } from '../render/hyena-model';
 import {
   createPlayer,
   drawPlayer,
@@ -34,8 +36,15 @@ if (!(status instanceof HTMLElement) || !(gallery instanceof HTMLElement)) {
 try {
   const player = bakePlayerSheet();
   const composites: HTMLCanvasElement[] = [];
+  const hyena = getEnemy('e01-hyena');
 
   mountSheet(gallery, '角色空手', player, 'p01-soldier.png');
+  mountSheet(
+    gallery,
+    `${hyena.name} · ${hyena.code}`,
+    bakeBoxSheet(hyenaBoxes(), HYENA_CELL, HYENA_ORTHO),
+    'e01-hyena.png',
+  );
 
   for (const weapon of listDesignedWeapons()) {
     const overlay = bakeBoxSheet(weaponBoxes(weapon.id));
