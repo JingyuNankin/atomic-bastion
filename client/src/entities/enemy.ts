@@ -12,9 +12,16 @@ import {
 } from './player';
 import { PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
 import { HYENA_CELL } from '../render/hyena-model';
+import { THEME } from '../ui/theme';
 
 const LUNGE_TIME = 0.14;
 const LUNGE_DISTANCE = 16;
+const BLAST_TIME = 0.32;
+const DRONE_PHASES = [
+  { time: 0.55, pace: 'hover' },
+  { time: 0.8, pace: 'cruise' },
+  { time: 0.45, pace: 'dash' },
+] as const;
 
 export type Enemy = {
   uid: number;
@@ -29,6 +36,9 @@ export type Enemy = {
   kx: number;
   ky: number;
   burn: number;
+  fuse: number;
+  blast: number;
+  motionTime: number;
 };
 
 let nextUid = 1;
@@ -49,6 +59,9 @@ export function createEnemy(kind: EnemyId, x: number, y: number): Enemy {
     kx: 0,
     ky: 0,
     burn: 0,
+    fuse: -1,
+    blast: 0,
+    motionTime: Math.random() * 1.8,
   };
   nextUid += 1;
   return enemy;
@@ -60,14 +73,25 @@ export function updateEnemies(
   dt: number,
   arena: Arena,
 ): void {
+  for (const enemy of enemies) {
+    if (enemy.blast > 0) {
+      enemy.blast = Math.max(0, enemy.blast - dt);
+    }
+  }
+
   cullEnemies(enemies);
 
   for (const enemy of enemies) {
+    if (enemy.hp <= 0) {
+      continue;
+    }
+
     const def = getEnemy(enemy.kind);
     enemy.hurt = Math.max(0, enemy.hurt - dt);
     enemy.burn = Math.max(0, enemy.burn - dt);
     enemy.attackCooldown = Math.max(0, enemy.attackCooldown - dt);
     enemy.lunge = Math.max(0, enemy.lunge - dt / LUNGE_TIME);
+    enemy.motionTime += dt;
 
     enemy.x += enemy.kx * dt;
     enemy.y += enemy.ky * dt;
@@ -84,9 +108,9 @@ export function updateEnemies(
       enemy.facing = facing;
     }
 
-    const biteReach = def.attackRange + def.attackReach;
-
-    if (def.attack === 'melee' && dist <= biteReach) {
+    if (def.attack === 'suicide') {
+      steerSuicide(enemy, player, dist, dx, dy, dt, arena);
+    } else if (def.attack === 'melee' && dist <= def.attackRange + def.attackReach) {
       if (enemy.attackCooldown <= 0 && player.hp > 0 && dist > 0) {
         bite(enemy, player, arena);
       }
@@ -95,11 +119,17 @@ export function updateEnemies(
       enemy.y += (dy / dist) * def.speed * dt;
     }
 
-    if (dist > 0 && dist < 22) {
+    if (def.locomotion === 'ground' && dist > 0 && dist < 22) {
       enemy.x -= (dx / dist) * (22 - dist);
       enemy.y -= (dy / dist) * (22 - dist);
     }
 
+    clampEnemy(enemy, arena);
+  }
+
+  separateBodies(enemies);
+
+  for (const enemy of enemies) {
     clampEnemy(enemy, arena);
   }
 }
@@ -134,7 +164,7 @@ export function enemyHitPoint(enemy: Enemy): { x: number; y: number } {
 
 export function cullEnemies(enemies: Enemy[]): void {
   for (let i = enemies.length - 1; i >= 0; i -= 1) {
-    if (enemies[i].hp <= 0) {
+    if (enemies[i].hp <= 0 && enemies[i].blast <= 0) {
       enemies.splice(i, 1);
     }
   }
@@ -147,6 +177,24 @@ export function drawEnemy(
 ): void {
   if (!sheet) {
     return;
+  }
+
+  const def = getEnemy(enemy.kind);
+
+  if (enemy.hp <= 0) {
+    if (enemy.blast > 0) {
+      drawBlast(context, enemy);
+    }
+    return;
+  }
+
+  if (def.locomotion === 'air') {
+    context.save();
+    context.fillStyle = 'rgba(42, 39, 34, 0.38)';
+    context.beginPath();
+    context.ellipse(enemy.x, enemy.y - 2, 16, 5, 0, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
   }
 
   const cell = sheetCell(enemy.facing, cellOf(enemy.kind));
@@ -168,25 +216,35 @@ export function drawEnemy(
     size.height,
   );
 
-  if (enemy.hurt <= 0) {
-    return;
+  if (enemy.hurt > 0) {
+    context.save();
+    context.globalAlpha = 0.55;
+    context.globalCompositeOperation = 'lighter';
+    context.drawImage(
+      sheet,
+      cell.sx,
+      cell.sy,
+      cell.sw,
+      cell.sh,
+      destX,
+      destY,
+      size.width,
+      size.height,
+    );
+    context.restore();
   }
 
-  context.save();
-  context.globalAlpha = 0.55;
-  context.globalCompositeOperation = 'lighter';
-  context.drawImage(
-    sheet,
-    cell.sx,
-    cell.sy,
-    cell.sw,
-    cell.sh,
-    destX,
-    destY,
-    size.width,
-    size.height,
-  );
-  context.restore();
+  if (enemy.fuse > 0 && warningLamp(enemy)) {
+    const nose = unitFacing(enemy.facing);
+    const lamp = enemy.fuse < def.attackInterval * 0.35 ? THEME.hpFill : THEME.stamp;
+    context.fillStyle = lamp;
+    context.fillRect(
+      enemy.x + nose.x * 14 - 3,
+      enemy.y - def.hitLift + nose.y * 8 - 3,
+      6,
+      6,
+    );
+  }
 }
 
 function bite(enemy: Enemy, player: Player, arena: Arena): void {
@@ -206,12 +264,168 @@ function bite(enemy: Enemy, player: Player, arena: Arena): void {
   updatePlayer(player, 0, { x: 0, y: 0 }, arena);
 }
 
+function steerSuicide(
+  enemy: Enemy,
+  player: Player,
+  dist: number,
+  dx: number,
+  dy: number,
+  dt: number,
+  arena: Arena,
+): void {
+  const def = getEnemy(enemy.kind);
+
+  if (enemy.fuse < 0 && dist <= def.attackRange && player.hp > 0) {
+    enemy.fuse = def.attackInterval;
+  }
+
+  const speed = enemy.fuse > 0 ? def.speed : dronePace(def, enemy.motionTime);
+  const hold = enemy.fuse > 0 && dist < 18;
+
+  if (!hold && dist > 0 && speed > 0) {
+    enemy.x += (dx / dist) * speed * dt;
+    enemy.y += (dy / dist) * speed * dt;
+  }
+
+  if (enemy.fuse < 0) {
+    return;
+  }
+
+  enemy.fuse -= dt;
+
+  if (enemy.fuse > 0) {
+    return;
+  }
+
+  detonate(enemy, player, arena);
+}
+
+function detonate(enemy: Enemy, player: Player, arena: Arena): void {
+  const def = getEnemy(enemy.kind);
+  const origin = enemyHitPoint(enemy);
+  const chestX = player.x;
+  const chestY = player.y - 40;
+  const dx = chestX - origin.x;
+  const dy = chestY - origin.y;
+  const dist = Math.hypot(dx, dy);
+
+  enemy.fuse = -1;
+  enemy.hp = 0;
+  enemy.blast = BLAST_TIME;
+
+  if (player.hp <= 0 || dist > def.blastRadius) {
+    return;
+  }
+
+  const away = unitFacing(enemy.facing);
+  player.hp = Math.max(0, player.hp - def.damage);
+  player.x += away.x * def.attackKnockback;
+  player.y += away.y * def.attackKnockback;
+  updatePlayer(player, 0, { x: 0, y: 0 }, arena);
+}
+
+function dronePace(
+  def: ReturnType<typeof getEnemy>,
+  motionTime: number,
+): number {
+  const cycle = DRONE_PHASES.reduce((sum, phase) => sum + phase.time, 0);
+  let time = motionTime % cycle;
+
+  for (const phase of DRONE_PHASES) {
+    if (time <= phase.time) {
+      if (phase.pace === 'hover') {
+        return 0;
+      }
+
+      if (phase.pace === 'cruise') {
+        return def.cruiseSpeed;
+      }
+
+      return def.speed;
+    }
+
+    time -= phase.time;
+  }
+
+  return 0;
+}
+
+function separateBodies(enemies: Enemy[]): void {
+  for (let i = 0; i < enemies.length; i += 1) {
+    const left = enemies[i];
+
+    if (left.hp <= 0) {
+      continue;
+    }
+
+    const leftDef = getEnemy(left.kind);
+
+    for (let j = i + 1; j < enemies.length; j += 1) {
+      const right = enemies[j];
+
+      if (right.hp <= 0) {
+        continue;
+      }
+
+      const rightDef = getEnemy(right.kind);
+
+      if (leftDef.locomotion !== rightDef.locomotion) {
+        continue;
+      }
+
+      const dx = right.x - left.x;
+      const dy = right.y - left.y;
+      const dist = Math.hypot(dx, dy) || 0.001;
+      const min = leftDef.bodyRadius + rightDef.bodyRadius;
+
+      if (dist >= min) {
+        continue;
+      }
+
+      const push = (min - dist) / 2;
+      const nx = dx / dist;
+      const ny = dy / dist;
+      left.x -= nx * push;
+      left.y -= ny * push;
+      right.x += nx * push;
+      right.y += ny * push;
+    }
+  }
+}
+
+function warningLamp(enemy: Enemy): boolean {
+  const def = getEnemy(enemy.kind);
+  const elapsed = Math.max(0, def.attackInterval - enemy.fuse);
+  const period = Math.max(0.05, 0.22 - elapsed * 0.18);
+  return Math.floor(elapsed / period) % 2 === 0;
+}
+
+function drawBlast(context: CanvasRenderingContext2D, enemy: Enemy): void {
+  const def = getEnemy(enemy.kind);
+  const progress = 1 - enemy.blast / BLAST_TIME;
+  const radius = Math.max(8, def.blastRadius) * (0.3 + 0.7 * progress);
+  const origin = enemyHitPoint(enemy);
+
+  context.save();
+  context.translate(origin.x, origin.y);
+  context.globalAlpha = 1 - progress;
+  context.fillStyle = THEME.rust;
+  context.beginPath();
+  context.arc(0, 0, radius, 0, Math.PI * 2);
+  context.fill();
+  context.fillStyle = THEME.stamp;
+  context.beginPath();
+  context.arc(0, 0, radius * 0.42, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+}
+
 function cellOf(kind: EnemyId): { width: number; height: number } {
   if (kind === 'e01-hyena') {
     return HYENA_CELL;
   }
 
-  return HYENA_CELL;
+  return PLAYER_CELL;
 }
 
 function displaySize(kind: EnemyId): { width: number; height: number } {

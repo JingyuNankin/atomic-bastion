@@ -91,6 +91,11 @@ export function createPlayWorld(): PlayWorld {
           player.x,
           Math.max(arena.top + 120, player.y - 320),
         ),
+        createEnemy(
+          'e02-drone',
+          Math.min(arena.right - 90, player.x + 260),
+          Math.max(arena.top + 120, player.y - 140),
+        ),
       );
     },
     equip(weaponId) {

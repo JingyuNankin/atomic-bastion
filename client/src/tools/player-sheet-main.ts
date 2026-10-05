@@ -7,6 +7,7 @@ import {
   playerSheetToPng,
   sheetCell,
 } from '../render/bake-player-sheet';
+import { droneBoxes } from '../render/drone-model';
 import { HYENA_CELL, HYENA_ORTHO, hyenaBoxes } from '../render/hyena-model';
 import {
   createPlayer,
@@ -37,6 +38,7 @@ try {
   const player = bakePlayerSheet();
   const composites: HTMLCanvasElement[] = [];
   const hyena = getEnemy('e01-hyena');
+  const drone = getEnemy('e02-drone');
 
   mountSheet(gallery, '角色空手', player, 'p01-soldier.png');
   mountSheet(
@@ -44,6 +46,12 @@ try {
     `${hyena.name} · ${hyena.code}`,
     bakeBoxSheet(hyenaBoxes(), HYENA_CELL, HYENA_ORTHO),
     'e01-hyena.png',
+  );
+  mountSheet(
+    gallery,
+    `${drone.name} · ${drone.code}`,
+    bakeBoxSheet(droneBoxes(), PLAYER_CELL),
+    'e02-drone.png',
   );
 
   for (const weapon of listDesignedWeapons()) {

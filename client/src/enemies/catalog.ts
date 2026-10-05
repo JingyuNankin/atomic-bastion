@@ -1,7 +1,8 @@
 import catalog from '../../../docs/design/enemies.json';
 
 export type EnemyId = string;
-export type AttackKind = 'melee';
+export type AttackKind = 'melee' | 'suicide';
+export type Locomotion = 'ground' | 'air';
 export type EnemyTier = '杂兵' | '射手' | '坦克';
 
 export type EnemyDef = {
@@ -13,8 +14,10 @@ export type EnemyDef = {
   blurb: string;
   enabled: boolean;
   tier: EnemyTier;
+  locomotion: Locomotion;
   hp: number;
   speed: number;
+  cruiseSpeed: number;
   attack: AttackKind;
   attackName: string;
   damage: number;
@@ -22,9 +25,11 @@ export type EnemyDef = {
   attackReach: number;
   attackInterval: number;
   attackKnockback: number;
+  blastRadius: number;
   knockbackResist: number;
   hitRadius: number;
   hitLift: number;
+  bodyRadius: number;
 };
 
 export type EnemyCatalog = {

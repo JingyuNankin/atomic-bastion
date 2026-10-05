@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "enemies": [
     {
       "id": "e01-hyena",
@@ -10,8 +10,10 @@
       "blurb": "「鬣齿-4」型巡舱机组。铁脉把检修巷道里的牵引底盘改成了四足，肩线压到人持枪的高度，只咬近处的东西。",
       "enabled": true,
       "tier": "杂兵",
+      "locomotion": "ground",
       "hp": 36,
       "speed": 168,
+      "cruiseSpeed": 168,
       "attack": "melee",
       "attackName": "撕咬",
       "damage": 14,
@@ -19,9 +21,37 @@
       "attackReach": 28,
       "attackInterval": 0.85,
       "attackKnockback": 22,
+      "blastRadius": 0,
       "knockbackResist": 0.35,
       "hitRadius": 36,
-      "hitLift": 48
+      "hitLift": 48,
+      "bodyRadius": 28
+    },
+    {
+      "id": "e02-drone",
+      "name": "无人机",
+      "nameEn": "Drone",
+      "code": "巡灯-3",
+      "role": "自爆袭扰",
+      "blurb": "「巡灯-3」型舱顶巡视机。机腹贴着闸工的枪口高度飞，速度一阵快一阵慢，也会停在半空。靠近后红灯急闪，然后撞炸。机身很脆。",
+      "enabled": true,
+      "tier": "杂兵",
+      "locomotion": "air",
+      "hp": 6,
+      "speed": 280,
+      "cruiseSpeed": 110,
+      "attack": "suicide",
+      "attackName": "自爆",
+      "damage": 34,
+      "attackRange": 86,
+      "attackReach": 0,
+      "attackInterval": 0.9,
+      "attackKnockback": 40,
+      "blastRadius": 72,
+      "knockbackResist": 0.1,
+      "hitRadius": 20,
+      "hitLift": 53,
+      "bodyRadius": 18
     }
   ]
 }

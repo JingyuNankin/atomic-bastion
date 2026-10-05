@@ -1,7 +1,9 @@
 import { listDesignedEnemies, type EnemyId } from '../enemies/catalog';
-import { bakeBoxSheet, bakeFittedSprite, bakePlayerSheet } from '../render/bake-player-sheet';
+import { bakeBoxSheet, bakeFittedSprite, bakePlayerSheet, PLAYER_CELL } from '../render/bake-player-sheet';
+import { droneBoxes } from '../render/drone-model';
 import { HYENA_CELL, HYENA_ORTHO, hyenaBoxes } from '../render/hyena-model';
 import { muzzleFlashBoxes, projectileBoxes } from '../render/projectile-model';
+import { PLAYER_ORTHO, type OrthoBounds } from '../render/player-gl';
 import type { Box } from '../render/player-model';
 import { recoiledWeaponBoxes, weaponBoxes } from '../render/weapon-model';
 import {
@@ -31,13 +33,13 @@ export async function loadGameArt(): Promise<GameArt> {
   const enemies: Record<EnemyId, HTMLCanvasElement> = {};
 
   for (const enemy of listDesignedEnemies()) {
-    const boxes = enemyBoxes(enemy.id);
+    const bake = enemyBake(enemy.id);
 
-    if (!boxes) {
+    if (!bake) {
       continue;
     }
 
-    enemies[enemy.id] = bakeBoxSheet(boxes, HYENA_CELL, HYENA_ORTHO);
+    enemies[enemy.id] = bakeBoxSheet(bake.boxes, bake.frame, bake.ortho);
   }
 
   for (const weapon of listDesignedWeapons()) {
@@ -65,9 +67,17 @@ export async function loadGameArt(): Promise<GameArt> {
   };
 }
 
-function enemyBoxes(id: EnemyId): Box[] | null {
+function enemyBake(id: EnemyId): {
+  boxes: Box[];
+  frame: { width: number; height: number };
+  ortho?: OrthoBounds;
+} | null {
   if (id === 'e01-hyena') {
-    return hyenaBoxes();
+    return { boxes: hyenaBoxes(), frame: HYENA_CELL, ortho: HYENA_ORTHO };
+  }
+
+  if (id === 'e02-drone') {
+    return { boxes: droneBoxes(), frame: PLAYER_CELL, ortho: PLAYER_ORTHO };
   }
 
   return null;
