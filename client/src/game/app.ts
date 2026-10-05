@@ -4,7 +4,9 @@ import { mountMenu } from '../scenes/menu';
 import { loadGameArt } from '../systems/game-art';
 import { createInput } from '../systems/input';
 import { WEAPON_SLOT_COUNT } from '../ui/hud';
+import { mountPauseMenu } from '../ui/pause';
 import { mountPlayBar } from '../ui/play-bar';
+import { mountStubPanel } from '../ui/stub-panel';
 import { mountWeaponLocker } from '../ui/weapon-locker';
 import { listDesignedWeapons } from '../weapons/catalog';
 
@@ -50,18 +52,51 @@ export function startGame(root: HTMLElement): void {
       console.error(error);
     });
 
-  const playBar = mountPlayBar(root, {
-    onBack() {
+  const pauseMenu = mountPauseMenu(root, {
+    onResume() {
+      setPaused(false);
+    },
+    onMenu() {
+      setPaused(false);
       locker.close();
       setScene('menu');
     },
+  });
+
+  const stub = mountStubPanel(root);
+  let stubKind: 'supply' | 'orders' | null = null;
+
+  const playBar = mountPlayBar(root, {
+    onPause() {
+      setPaused(!pauseMenu.isOpen());
+    },
+    onSupply() {
+      toggleStub(
+        'supply',
+        '补给舱',
+        '补给线路尚未接通。燃料、弹药与零件补给暂不可用。',
+      );
+    },
     onWeapons() {
+      if (pauseMenu.isOpen()) {
+        return;
+      }
+
+      closeStub();
+
       if (locker.isOpen()) {
         locker.close();
         return;
       }
 
       locker.open();
+    },
+    onOrders() {
+      toggleStub(
+        'orders',
+        '任务单',
+        '任务单尚未下发。当前仅开放生存模式渗透。',
+      );
     },
   });
 
@@ -86,6 +121,8 @@ export function startGame(root: HTMLElement): void {
 
     if (next !== 'play') {
       locker.close();
+      closeStub();
+      setPaused(false);
     }
 
     if (next === 'play') {
@@ -115,7 +152,47 @@ export function startGame(root: HTMLElement): void {
         return;
       }
 
-      setScene('menu');
+      if (stub.isOpen()) {
+        closeStub();
+        return;
+      }
+
+      setPaused(!pauseMenu.isOpen());
+      return;
+    }
+
+    if (pauseMenu.isOpen()) {
+      return;
+    }
+
+    if (event.code === 'KeyJ') {
+      event.preventDefault();
+      toggleStub(
+        'supply',
+        '补给舱',
+        '补给线路尚未接通。燃料、弹药与零件补给暂不可用。',
+      );
+      return;
+    }
+
+    if (event.code === 'KeyK') {
+      event.preventDefault();
+      closeStub();
+      if (locker.isOpen()) {
+        locker.close();
+      } else {
+        locker.open();
+      }
+      return;
+    }
+
+    if (event.code === 'KeyL') {
+      event.preventDefault();
+      toggleStub(
+        'orders',
+        '任务单',
+        '任务单尚未下发。当前仅开放生存模式渗透。',
+      );
       return;
     }
 
@@ -148,7 +225,7 @@ export function startGame(root: HTMLElement): void {
     if (scene === 'menu') {
       drawMenuBackdrop(context, canvas.width, canvas.height, time);
     } else {
-      const paused = locker.isOpen();
+      const paused = locker.isOpen() || pauseMenu.isOpen() || stub.isOpen();
       world.update(
         paused ? 0 : dt,
         paused ? { x: 0, y: 0 } : input.axis(),
@@ -163,6 +240,40 @@ export function startGame(root: HTMLElement): void {
 
     window.requestAnimationFrame(frame);
   };
+
+  function closeStub(): void {
+    stub.close();
+    stubKind = null;
+  }
+
+  function toggleStub(
+    kind: 'supply' | 'orders',
+    title: string,
+    hint: string,
+  ): void {
+    if (pauseMenu.isOpen()) {
+      return;
+    }
+
+    locker.close();
+
+    if (stub.isOpen() && stubKind === kind) {
+      closeStub();
+      return;
+    }
+
+    stubKind = kind;
+    stub.open(title, hint);
+  }
+
+  function setPaused(next: boolean): void {
+    if (next) {
+      locker.close();
+      closeStub();
+    }
+
+    pauseMenu.setOpen(next && scene === 'play');
+  }
 
   setScene('menu');
   window.requestAnimationFrame(frame);

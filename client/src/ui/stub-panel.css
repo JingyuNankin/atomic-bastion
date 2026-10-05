@@ -1,0 +1,69 @@
+.stub {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.stub[hidden] {
+  display: none;
+}
+
+.stub__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(42, 39, 34, 0.62);
+}
+
+.stub__panel {
+  position: relative;
+  width: min(360px, 100%);
+  padding: 22px 24px 20px;
+  border: 1px solid var(--ink);
+  background-color: var(--paper);
+  background-image: linear-gradient(180deg, #dcc9a8 0%, var(--paper-dark) 100%);
+  box-shadow: 6px 8px 0 rgba(42, 39, 34, 0.32);
+}
+
+.stub__brand {
+  color: var(--ink-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.stub__title {
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.stub__hint {
+  margin-top: 8px;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.stub__close {
+  appearance: none;
+  margin-top: 20px;
+  min-width: 140px;
+  padding: 10px 16px;
+  border: 2px solid var(--stamp);
+  background: transparent;
+  color: var(--stamp);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stub__close:hover,
+.stub__close:focus-visible {
+  background: rgba(163, 32, 32, 0.1);
+  outline: none;
+}

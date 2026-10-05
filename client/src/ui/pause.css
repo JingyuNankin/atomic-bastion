@@ -1,0 +1,118 @@
+.pause {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.pause[hidden] {
+  display: none;
+}
+
+.pause__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.pause__panel {
+  position: relative;
+  width: min(360px, 100%);
+  padding: 22px 24px 20px;
+  border: 1px solid var(--ink);
+  background-color: var(--paper);
+  background-image: linear-gradient(180deg, #dcc9a8 0%, var(--paper-dark) 100%);
+  box-shadow: 6px 8px 0 rgba(0, 0, 0, 0.35);
+}
+
+.pause__brand {
+  color: var(--ink-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.pause__title {
+  margin-top: 6px;
+  color: var(--ink);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.pause__hint {
+  margin-top: 8px;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pause__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.pause__btn {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.pause__btn--primary {
+  border-color: var(--stamp);
+  color: var(--stamp);
+  font-weight: 700;
+}
+
+.pause__btn:hover,
+.pause__btn:focus-visible {
+  background: rgba(163, 32, 32, 0.1);
+  outline: none;
+}
+
+.pause__btn:disabled {
+  border-color: rgba(44, 36, 24, 0.28);
+  color: var(--ink-muted);
+  cursor: not-allowed;
+}
+
+.pause__btn:disabled:hover,
+.pause__btn:disabled:focus-visible {
+  background: transparent;
+}
+
+.pause__tag {
+  margin-left: 8px;
+  color: var(--brass);
+  font-size: 11px;
+}
+
+.pause__key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  min-width: 28px;
+  padding: 1px 5px;
+  border: 1px solid var(--stamp);
+  background: var(--paper);
+  color: var(--stamp);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+}
