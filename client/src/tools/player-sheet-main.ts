@@ -1,12 +1,13 @@
 import { getEnemy } from '../enemies/catalog';
+import { getDefaultOperative, listOperatives } from '../operatives/catalog';
 import {
   bakeBoxSheet,
   bakeFittedSprite,
-  bakePlayerSheet,
   PLAYER_CELL,
   playerSheetToPng,
   sheetCell,
 } from '../render/bake-player-sheet';
+import { operativeBoxes } from '../render/operative-model';
 import { droneBoxes } from '../render/drone-model';
 import { HYENA_CELL, HYENA_ORTHO, hyenaBoxes } from '../render/hyena-model';
 import {
@@ -35,12 +36,36 @@ if (!(status instanceof HTMLElement) || !(gallery instanceof HTMLElement)) {
 }
 
 try {
-  const player = bakePlayerSheet();
+  const gatekeeper = getDefaultOperative();
+  const sheets = new Map(
+    listOperatives().map((operative) => [
+      operative.id,
+      bakeBoxSheet(operativeBoxes(operative.model)),
+    ]),
+  );
+  const player = sheets.get(gatekeeper.id);
+
+  if (!player) {
+    throw new Error('Missing default operative sheet');
+  }
   const composites: HTMLCanvasElement[] = [];
   const hyena = getEnemy('e01-hyena');
   const drone = getEnemy('e02-drone');
 
-  mountSheet(gallery, '角色空手', player, 'p01-soldier.png');
+  for (const operative of listOperatives()) {
+    const sheet = sheets.get(operative.id);
+
+    if (!sheet) {
+      continue;
+    }
+
+    mountSheet(
+      gallery,
+      `${operative.code} · ${operative.name}`,
+      sheet,
+      `${operative.id}.png`,
+    );
+  }
   mountSheet(
     gallery,
     `${hyena.name} · ${hyena.code}`,
@@ -62,6 +87,27 @@ try {
 
     composites.push(composite);
     mountSheet(gallery, `${weapon.name} 图层`, overlay, `${weapon.id}.png`);
+
+    if (weapon.id === 'w01-pistol') {
+      for (const operative of listOperatives()) {
+        if (operative.id === gatekeeper.id) {
+          continue;
+        }
+
+        const body = sheets.get(operative.id);
+
+        if (!body) {
+          continue;
+        }
+
+        mountSheet(
+          gallery,
+          `${operative.code} · ${weapon.name}`,
+          compositeSheet(body, overlay),
+          `${operative.id}-held.png`,
+        );
+      }
+    }
     mountSheet(gallery, `${weapon.name} 射击`, fireOverlay, `${weapon.id}-fire.png`);
     mountSheet(gallery, `${weapon.name} 合成`, composite, `${weapon.id}-held.png`);
     mountSprite(gallery, `${weapon.name} 图标`, icon);

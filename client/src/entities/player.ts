@@ -7,6 +7,7 @@ import {
   type Direction,
 } from '../game/direction';
 import type { GameArt } from '../systems/game-art';
+import { getDefaultOperative, type OperativeId } from '../operatives/catalog';
 import { DEFAULT_WEAPON_ID, getWeapon, type WeaponId } from '../weapons/catalog';
 
 export const PLAYER_SPEED = 200;
@@ -21,6 +22,7 @@ export type Player = {
   x: number;
   y: number;
   facing: Direction;
+  operativeId: OperativeId;
   weaponId: WeaponId;
   ammoInMag: number;
   hp: number;
@@ -36,11 +38,16 @@ export type Arena = {
   bottom: number;
 };
 
-export function createPlayer(x: number, y: number): Player {
+export function createPlayer(
+  x: number,
+  y: number,
+  operativeId: OperativeId = getDefaultOperative().id,
+): Player {
   return {
     x,
     y,
     facing: 's',
+    operativeId,
     weaponId: DEFAULT_WEAPON_ID,
     ammoInMag: getWeapon(DEFAULT_WEAPON_ID).magazineSize,
     hp: PLAYER_MAX_HP,
@@ -123,7 +130,12 @@ export function drawPlayer(
     blitCell(context, overlay, player.facing, dest);
   }
 
-  blitCell(context, art.player, player.facing, dest);
+  blitCell(
+    context,
+    art.operatives[player.operativeId] ?? art.player,
+    player.facing,
+    dest,
+  );
 
   if (overlay && !behind) {
     blitCell(context, overlay, player.facing, dest);

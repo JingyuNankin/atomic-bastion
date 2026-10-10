@@ -11,7 +11,7 @@ export const GAME_MODES: readonly GameMode[] = [
   {
     id: 'survival',
     name: '生存模式',
-    summary: '闸工渗透铁脉隔离区，对抗脱离主控制域的自动化单元，比谁能撑过更多轮次。',
+    summary: '执行员渗透铁脉隔离区，对抗脱离主控制域的自动化单元，比谁能撑过更多轮次。',
     available: true,
   },
   {

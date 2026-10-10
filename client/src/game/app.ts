@@ -1,3 +1,4 @@
+import type { OperativeId } from '../operatives/catalog';
 import { createLoadout } from './loadout';
 import { createPlayWorld, drawMenuBackdrop } from '../scenes/play';
 import { mountMenu } from '../scenes/menu';
@@ -101,7 +102,8 @@ export function startGame(root: HTMLElement): void {
   });
 
   const menu = mountMenu(root, {
-    onStart() {
+    onStart(operativeId: OperativeId) {
+      world.setOperative(operativeId);
       setScene('play');
     },
   });

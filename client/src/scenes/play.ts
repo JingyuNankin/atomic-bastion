@@ -21,6 +21,7 @@ import {
 } from '../systems/combat';
 import { resolveProjectileHits } from '../systems/hits';
 import { createLoadout, firstLoadoutWeapon, type Loadout } from '../game/loadout';
+import type { OperativeId } from '../operatives/catalog';
 import { getWeaponArt, type GameArt } from '../systems/game-art';
 import { drawWeaponHud, weaponHudLayout, weaponSlots } from '../ui/hud';
 import { THEME } from '../ui/theme';
@@ -30,6 +31,7 @@ const ARENA_INSET = 48;
 
 export type PlayWorld = {
   setArt: (art: GameArt) => void;
+  setOperative: (operativeId: OperativeId) => void;
   setLoadout: (slots: Loadout) => void;
   enter: (width: number, height: number) => void;
   equip: (weaponId: WeaponId) => void;
@@ -66,6 +68,9 @@ export function createPlayWorld(): PlayWorld {
   return {
     setArt(next) {
       art = next;
+    },
+    setOperative(operativeId) {
+      player.operativeId = operativeId;
     },
     setLoadout(slots) {
       loadout = slots;

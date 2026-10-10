@@ -3,12 +3,21 @@ import {
   type GameMode,
   type GameModeId,
 } from '../game/modes';
+import {
+  getDefaultOperative,
+  getOperative,
+  listOperatives,
+  type OperativeDef,
+  type OperativeId,
+} from '../operatives/catalog';
+import { bakeBoxSheet, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
+import { operativeBoxes } from '../render/operative-model';
+import { renderOperativeDossier, renderReservedDossier } from '../ui/operative-dossier';
 import '../ui/menu.css';
 import { sealMarkup, starMarkup } from '../ui/seal';
-import { bakePlayerSheet, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
 
 type MenuHandlers = {
-  onStart: () => void;
+  onStart: (operativeId: OperativeId) => void;
 };
 
 type MenuView = {
@@ -22,6 +31,20 @@ type OrderCopy = {
   body: string;
 };
 
+type ReservedSlotId = 'custom' | 'community';
+
+type ReservedSlot = {
+  id: ReservedSlotId;
+  title: string;
+  detail: string;
+};
+
+type PickerDraft =
+  | { kind: 'operative'; id: OperativeId }
+  | { kind: 'reserved'; id: ReservedSlotId };
+
+const RECIPIENT = '{name} · 「{code}」';
+
 const ORDERS: Record<GameModeId, OrderCopy> = {
   survival: {
     number: '72-014',
@@ -29,7 +52,7 @@ const ORDERS: Record<GameModeId, OrderCopy> = {
     lead: '第 72 号自动反应堆研究堡垒（代号「铁脉」）通讯中断。自动化单元已脱离控制。',
     body: `
       <ol class="menu__clauses">
-        <li>由技术执行员「闸工」进入隔离区，查明事故原因。</li>
+        <li>由{role}「{code}」进入隔离区，查明事故原因。</li>
         <li>立即切断「铁脉核心」控制系统，回收实验记录。</li>
         <li>自动化单元均按敌对目标处置。仅在妨碍任务时予以摧毁。</li>
         <li>行动及回收资料列为绝密，不得对外披露。</li>
@@ -43,7 +66,7 @@ const ORDERS: Record<GameModeId, OrderCopy> = {
     body: `
       <ol class="menu__clauses">
         <li>本项行动尚未下达。</li>
-        <li>未经另行命令，不得进入核心主机舱。</li>
+        <li>未经另行命令，「{code}」不得进入核心主机舱。</li>
       </ol>
     `,
   },
@@ -54,11 +77,24 @@ const ORDERS: Record<GameModeId, OrderCopy> = {
     body: `
       <ol class="menu__clauses">
         <li>本项行动尚未下达。</li>
-        <li>档案回收须待隔离区解除封锁后执行。</li>
+        <li>档案回收须待隔离区解除封锁后，由「{code}」执行。</li>
       </ol>
     `,
   },
 };
+
+const RESERVED_SLOTS: ReservedSlot[] = [
+  {
+    id: 'custom',
+    title: '自定义',
+    detail: '自定皮肤、名字与职业',
+  },
+  {
+    id: 'community',
+    title: '社区',
+    detail: '使用社区皮肤',
+  },
+];
 
 export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
   const overlay = document.createElement('div');
@@ -69,14 +105,15 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
       <p class="menu__game">原子堡垒</p>
       <p class="menu__rail-kicker">封存设施 · 禁止外传</p>
       <p class="menu__game-sub">BUNKER-72 · 铁脉</p>
-      <div class="menu__portrait" aria-label="执行员闸工的角色立绘">
+      <button type="button" class="menu__portrait" aria-haspopup="dialog" aria-controls="operative-picker">
         <canvas class="menu__portrait-canvas" aria-hidden="true"></canvas>
-        <span class="menu__portrait-label">人员档案 / ОТР-3</span>
-      </div>
+        <span class="menu__portrait-label">更换执行员</span>
+      </button>
       <div class="menu__personnel">
         <p class="menu__personnel-label">执行员档案 / 72—А</p>
-        <p class="menu__personnel-name">闸工 <span>GATEKEEPER</span></p>
-        <p class="menu__personnel-role">核设施设备调试工程师</p>
+        <p class="menu__personnel-name"></p>
+        <p class="menu__personnel-role"></p>
+        <button type="button" class="menu__personnel-change">更换指派</button>
       </div>
       <nav class="menu__modes" aria-label="任务模式"></nav>
     </aside>
@@ -94,7 +131,7 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
       <dl class="menu__meta">
         <div>
           <dt>收件人</dt>
-          <dd>执行员「闸工」</dd>
+          <dd class="menu__recipient"></dd>
         </div>
         <div>
           <dt>任务地点</dt>
@@ -119,45 +156,166 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
         legend: 'ОТР-3 · 绝密 · 铁脉 · BUNKER-72 ·',
       })}</div>
     </article>
+    <div class="menu__picker" id="operative-picker" hidden>
+      <div class="menu__picker-backdrop"></div>
+      <div class="menu__picker-panel" role="dialog" aria-modal="true" aria-labelledby="operative-picker-title">
+        <div class="menu__picker-top">
+          <div>
+            <p class="menu__picker-kicker">ОТР-3 · 人员指派</p>
+            <h2 class="menu__picker-title" id="operative-picker-title">执行员名册</h2>
+          </div>
+          <button type="button" class="menu__picker-cancel">收回</button>
+        </div>
+        <p class="menu__picker-hint">左侧点选人员。自定义与社区栏位留空，尚未开放。</p>
+        <div class="menu__picker-main">
+          <section class="menu__picker-col">
+            <h3 class="menu__picker-col-title">名册</h3>
+            <div class="menu__picker-list"></div>
+          </section>
+          <section class="menu__picker-col menu__picker-col--stage">
+            <h3 class="menu__picker-col-title">体模</h3>
+            <div class="menu__stage">
+              <canvas class="menu__stage-canvas" aria-hidden="true"></canvas>
+              <p class="menu__stage-caption"></p>
+            </div>
+          </section>
+          <section class="menu__picker-col">
+            <h3 class="menu__picker-col-title">档案</h3>
+            <div class="menu__dossier"></div>
+          </section>
+        </div>
+        <div class="menu__picker-actions">
+          <button type="button" class="menu__picker-confirm">按此指派</button>
+        </div>
+      </div>
+    </div>
   `;
 
   const modesNav = overlay.querySelector('.menu__modes');
+  const portraitButton = overlay.querySelector('.menu__portrait');
   const portrait = overlay.querySelector('.menu__portrait-canvas');
+  const personnelName = overlay.querySelector('.menu__personnel-name');
+  const personnelRole = overlay.querySelector('.menu__personnel-role');
+  const personnelChange = overlay.querySelector('.menu__personnel-change');
   const orderNo = overlay.querySelector('.menu__order-no');
   const subject = overlay.querySelector('.menu__subject');
+  const recipient = overlay.querySelector('.menu__recipient');
   const lead = overlay.querySelector('.menu__lead');
   const body = overlay.querySelector('.menu__body');
   const startButton = overlay.querySelector('.menu__start');
+  const picker = overlay.querySelector('.menu__picker');
+  const pickerList = overlay.querySelector('.menu__picker-list');
+  const pickerBackdrop = overlay.querySelector('.menu__picker-backdrop');
+  const pickerConfirm = overlay.querySelector('.menu__picker-confirm');
+  const pickerCancel = overlay.querySelector('.menu__picker-cancel');
+  const stage = overlay.querySelector('.menu__stage');
+  const stageCanvas = overlay.querySelector('.menu__stage-canvas');
+  const stageCaption = overlay.querySelector('.menu__stage-caption');
+  const dossier = overlay.querySelector('.menu__dossier');
 
   if (
     !(modesNav instanceof HTMLElement) ||
+    !(portraitButton instanceof HTMLButtonElement) ||
+    !(portrait instanceof HTMLCanvasElement) ||
+    !(personnelName instanceof HTMLElement) ||
+    !(personnelRole instanceof HTMLElement) ||
+    !(personnelChange instanceof HTMLButtonElement) ||
     !(orderNo instanceof HTMLElement) ||
     !(subject instanceof HTMLElement) ||
+    !(recipient instanceof HTMLElement) ||
     !(lead instanceof HTMLElement) ||
     !(body instanceof HTMLElement) ||
-    !(startButton instanceof HTMLButtonElement)
+    !(startButton instanceof HTMLButtonElement) ||
+    !(picker instanceof HTMLElement) ||
+    !(pickerList instanceof HTMLElement) ||
+    !(pickerBackdrop instanceof HTMLElement) ||
+    !(pickerConfirm instanceof HTMLButtonElement) ||
+    !(pickerCancel instanceof HTMLButtonElement) ||
+    !(stage instanceof HTMLElement) ||
+    !(stageCanvas instanceof HTMLCanvasElement) ||
+    !(stageCaption instanceof HTMLElement) ||
+    !(dossier instanceof HTMLElement)
   ) {
     throw new Error('Missing menu order sheet');
   }
 
-  if (portrait instanceof HTMLCanvasElement) {
-    try {
-      const sheet = bakePlayerSheet();
-      const frame = sheetCell('s', PLAYER_CELL);
-      portrait.width = PLAYER_CELL.width;
-      portrait.height = PLAYER_CELL.height;
-      portrait.getContext('2d')?.drawImage(
-        sheet,
-        frame.sx, frame.sy, frame.sw, frame.sh,
-        0, 0, PLAYER_CELL.width, PLAYER_CELL.height,
-      );
-    } catch (error) {
-      console.warn('Could not render the menu personnel portrait.', error);
+  const sheets = new Map<OperativeId, HTMLCanvasElement>();
+
+  try {
+    for (const operative of listOperatives()) {
+      sheets.set(operative.id, bakeBoxSheet(operativeBoxes(operative.model)));
     }
+  } catch (error) {
+    console.warn('Could not render operative portraits.', error);
+  }
+
+  const pickButtons = new Map<string, HTMLButtonElement>();
+
+  for (const operative of listOperatives()) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'menu__pick';
+
+    const thumb = document.createElement('canvas');
+    thumb.className = 'menu__pick-canvas';
+    thumb.setAttribute('aria-hidden', 'true');
+    const sheet = sheets.get(operative.id);
+    if (sheet) {
+      paintSouth(thumb, sheet);
+    }
+
+    const copy = document.createElement('span');
+    copy.className = 'menu__pick-copy';
+    const title = document.createElement('span');
+    title.className = 'menu__pick-title';
+    title.textContent = operative.name;
+    const chip = document.createElement('span');
+    chip.className = 'menu__pick-chip';
+    chip.textContent = operative.role;
+    copy.append(title, chip);
+
+    button.append(thumb, copy);
+    button.addEventListener('click', () => {
+      draft = { kind: 'operative', id: operative.id };
+      showDraft();
+    });
+    pickButtons.set(operative.id, button);
+    pickerList.append(button);
+  }
+
+  for (const slot of RESERVED_SLOTS) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'menu__pick is-reserved';
+
+    const mark = document.createElement('span');
+    mark.className = 'menu__pick-mark';
+    mark.textContent = '留空';
+
+    const copy = document.createElement('span');
+    copy.className = 'menu__pick-copy';
+    const title = document.createElement('span');
+    title.className = 'menu__pick-title';
+    title.textContent = slot.title;
+    const chip = document.createElement('span');
+    chip.className = 'menu__pick-chip';
+    chip.textContent = '未开放';
+    copy.append(title, chip);
+
+    button.append(mark, copy);
+    button.addEventListener('click', () => {
+      draft = { kind: 'reserved', id: slot.id };
+      showDraft();
+    });
+    pickButtons.set(slot.id, button);
+    pickerList.append(button);
   }
 
   let selectedId: GameModeId =
     GAME_MODES.find((mode) => mode.available)?.id ?? GAME_MODES[0].id;
+  let operativeId = getDefaultOperative().id;
+  let draft: PickerDraft = { kind: 'operative', id: operativeId };
+  let pickerOpen = false;
 
   const renderModes = () => {
     modesNav.replaceChildren();
@@ -190,12 +348,31 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
     }
   };
 
-  const renderOrder = (mode: GameMode) => {
+  const renderPersonnel = (operative: OperativeDef) => {
+    personnelName.replaceChildren();
+    personnelName.append(document.createTextNode(`${operative.code} `));
+    const en = document.createElement('span');
+    en.textContent = operative.codeEn.toUpperCase();
+    personnelName.append(en);
+    personnelRole.textContent = operative.role;
+    portraitButton.setAttribute(
+      'aria-label',
+      `更换执行员，当前为${operative.code}`,
+    );
+
+    const sheet = sheets.get(operative.id);
+    if (sheet) {
+      paintSouth(portrait, sheet);
+    }
+  };
+
+  const renderOrder = (mode: GameMode, operative: OperativeDef) => {
     const order = ORDERS[mode.id];
     orderNo.textContent = `处置令 № ${order.number}`;
-    subject.textContent = order.subject;
-    lead.textContent = order.lead;
-    body.innerHTML = order.body;
+    subject.textContent = fillOrder(order.subject, operative);
+    recipient.textContent = fillOrder(RECIPIENT, operative);
+    lead.textContent = fillOrder(order.lead, operative);
+    body.innerHTML = fillOrder(order.body, operative, true);
     startButton.textContent = mode.available ? '受领并进入' : '命令未下达';
     startButton.disabled = !mode.available;
   };
@@ -203,16 +380,89 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
   const render = () => {
     const mode = GAME_MODES.find((item) => item.id === selectedId) ?? GAME_MODES[0];
     renderModes();
-    renderOrder(mode);
+    const operative = getOperative(operativeId);
+    renderPersonnel(operative);
+    renderOrder(mode, operative);
   };
 
-  startButton.addEventListener('click', () => {
-    const mode = GAME_MODES.find((item) => item.id === selectedId);
-    if (!mode?.available) {
+  const showDraft = () => {
+    const draftKey = draft.id;
+    for (const [id, button] of pickButtons) {
+      button.classList.toggle('is-selected', id === draftKey);
+    }
+
+    if (draft.kind === 'operative') {
+      const operative = getOperative(draft.id);
+      const sheet = sheets.get(operative.id);
+      stage.classList.remove('is-empty');
+      if (sheet) {
+        paintSouth(stageCanvas, sheet);
+      }
+      stageCaption.textContent = `${operative.code} · 南向`;
+      renderOperativeDossier(dossier, operative);
+      pickerConfirm.disabled = false;
+      pickerConfirm.textContent = '按此指派';
       return;
     }
 
-    handlers.onStart();
+    const slot = RESERVED_SLOTS.find((item) => item.id === draft.id);
+    stage.classList.add('is-empty');
+    stageCaption.textContent = '栏位留空';
+    renderReservedDossier(dossier, slot?.title ?? '留空', slot?.detail ?? '');
+    pickerConfirm.disabled = true;
+    pickerConfirm.textContent = '尚未开放';
+  };
+
+  const setPickerOpen = (open: boolean) => {
+    pickerOpen = open;
+    picker.hidden = !open;
+    if (open) {
+      draft = { kind: 'operative', id: operativeId };
+      showDraft();
+      pickButtons.get(operativeId)?.focus();
+    }
+  };
+
+  portraitButton.addEventListener('click', () => {
+    setPickerOpen(true);
+  });
+  personnelChange.addEventListener('click', () => {
+    setPickerOpen(true);
+  });
+  pickerBackdrop.addEventListener('click', () => {
+    setPickerOpen(false);
+  });
+  pickerCancel.addEventListener('click', () => {
+    setPickerOpen(false);
+    portraitButton.focus();
+  });
+  pickerConfirm.addEventListener('click', () => {
+    if (draft.kind !== 'operative') {
+      return;
+    }
+
+    operativeId = draft.id;
+    setPickerOpen(false);
+    render();
+    portraitButton.focus();
+  });
+  overlay.addEventListener('keydown', (event) => {
+    if (!pickerOpen || event.key !== 'Escape') {
+      return;
+    }
+
+    event.preventDefault();
+    setPickerOpen(false);
+    portraitButton.focus();
+  });
+
+  startButton.addEventListener('click', () => {
+    const mode = GAME_MODES.find((item) => item.id === selectedId);
+    if (!mode?.available || pickerOpen) {
+      return;
+    }
+
+    handlers.onStart(operativeId);
   });
 
   render();
@@ -221,6 +471,56 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
   return {
     setVisible(visible: boolean) {
       overlay.hidden = !visible;
+      if (!visible) {
+        setPickerOpen(false);
+      }
     },
   };
+}
+
+function fillOrder(template: string, operative: OperativeDef, html = false): string {
+  const fields: Record<string, string> = {
+    code: operative.code,
+    codeEn: operative.codeEn,
+    name: operative.name,
+    role: operative.role,
+  };
+
+  return template.replaceAll(/\{(code|codeEn|name|role)\}/g, (_match, key: string) => {
+    const value = fields[key] ?? '';
+    return html ? escapeHtml(value) : value;
+  });
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+function paintSouth(canvas: HTMLCanvasElement, sheet: HTMLCanvasElement): void {
+  const frame = sheetCell('s', PLAYER_CELL);
+  canvas.width = PLAYER_CELL.width;
+  canvas.height = PLAYER_CELL.height;
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    return;
+  }
+
+  context.imageSmoothingEnabled = false;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(
+    sheet,
+    frame.sx,
+    frame.sy,
+    frame.sw,
+    frame.sh,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
 }

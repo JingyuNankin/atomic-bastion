@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "defaultId": "p01-gatekeeper",
+  "operatives": [
+    {
+      "id": "p01-gatekeeper",
+      "name": "阿列克谢・沃罗宁",
+      "nameEn": "Alexei Voronin",
+      "code": "闸工",
+      "codeEn": "Gatekeeper",
+      "role": "核设施设备调试工程师",
+      "model": "civilian",
+      "blurb": "便衣技术员。白衬衫、金领带，无钢盔。看控制回路，不是看射界。",
+      "fileNo": "ОТР-3 / 72—А—014",
+      "aptitudeProvisional": true,
+      "fields": [
+        { "label": "姓", "value": "沃罗宁" },
+        { "label": "名", "value": "阿列克谢" },
+        { "label": "父称", "value": "", "redacted": true },
+        { "label": "出生", "value": "", "redacted": true },
+        { "label": "籍贯", "value": "", "redacted": true },
+        { "label": "住址", "value": "", "redacted": true },
+        { "label": "密级", "value": "绝密" }
+      ],
+      "service": [
+        { "years": "1966–1971", "post": "新沃罗涅日装置，设备调试技术员" },
+        { "years": "1971–1974", "post": "自动反应堆回路验收" },
+        { "years": "19██", "post": "", "redacted": true },
+        { "years": "1974–", "post": "借调第三特别处置处，代号闸工" }
+      ],
+      "note": "紧急切断与控制回路合格。射击不列入鉴定。",
+      "aptitude": [
+        { "id": "speed", "label": "移速", "value": 42 },
+        { "id": "hp", "label": "体力", "value": 48 },
+        { "id": "reload", "label": "换弹", "value": 36 },
+        { "id": "salvage", "label": "回收", "value": 78 },
+        { "id": "circuit", "label": "回路", "value": 90 },
+        { "id": "field", "label": "射界", "value": 34 }
+      ]
+    },
+    {
+      "id": "p02-sentry",
+      "name": "谢尔盖・莫罗佐夫",
+      "nameEn": "Sergei Morozov",
+      "code": "哨卫",
+      "codeEn": "Sentry",
+      "role": "摩托化步兵军士",
+      "model": "soldier-1970",
+      "blurb": "1970 年代野战服：大檐帽、卡其闭襟、红肩章、长筒靴。借调 ОТР-3，负责把技术人员送进隔离区并守住退路。",
+      "fileNo": "ОТР-3 / 72—А—031",
+      "aptitudeProvisional": true,
+      "fields": [
+        { "label": "姓", "value": "莫罗佐夫" },
+        { "label": "名", "value": "谢尔盖" },
+        { "label": "父称", "value": "", "redacted": true },
+        { "label": "出生", "value": "", "redacted": true },
+        { "label": "籍贯", "value": "", "redacted": true },
+        { "label": "部队", "value": "", "redacted": true },
+        { "label": "住址", "value": "", "redacted": true },
+        { "label": "密级", "value": "绝密" }
+      ],
+      "service": [
+        { "years": "1969–1972", "post": "摩托化步兵，列兵至军士" },
+        { "years": "1972–1975", "post": "驻德集群，班长" },
+        { "years": "197██", "post": "", "redacted": true },
+        { "years": "1975–", "post": "借调 ОТР-3，武装护卫" }
+      ],
+      "note": "负责走廊与退路。不参与回路判断。",
+      "aptitude": [
+        { "id": "speed", "label": "移速", "value": 74 },
+        { "id": "hp", "label": "体力", "value": 70 },
+        { "id": "reload", "label": "换弹", "value": 68 },
+        { "id": "salvage", "label": "回收", "value": 40 },
+        { "id": "circuit", "label": "回路", "value": 28 },
+        { "id": "field", "label": "射界", "value": 82 }
+      ]
+    }
+  ]
+}

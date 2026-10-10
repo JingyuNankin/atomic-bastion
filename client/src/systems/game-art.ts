@@ -1,5 +1,7 @@
 import { listDesignedEnemies, type EnemyId } from '../enemies/catalog';
-import { bakeBoxSheet, bakeFittedSprite, bakePlayerSheet, PLAYER_CELL } from '../render/bake-player-sheet';
+import { getDefaultOperative, listOperatives, type OperativeId } from '../operatives/catalog';
+import { bakeBoxSheet, bakeFittedSprite, PLAYER_CELL } from '../render/bake-player-sheet';
+import { operativeBoxes } from '../render/operative-model';
 import { droneBoxes } from '../render/drone-model';
 import { HYENA_CELL, HYENA_ORTHO, hyenaBoxes } from '../render/hyena-model';
 import { muzzleFlashBoxes, projectileBoxes } from '../render/projectile-model';
@@ -21,6 +23,7 @@ export type WeaponArt = {
 
 export type GameArt = {
   player: HTMLCanvasElement;
+  operatives: Record<OperativeId, HTMLCanvasElement>;
   enemies: Record<EnemyId, HTMLCanvasElement>;
   weapons: Record<WeaponId, WeaponArt>;
   projectiles: Record<ProjectileId, HTMLCanvasElement>;
@@ -31,6 +34,11 @@ export async function loadGameArt(): Promise<GameArt> {
   const weapons: Record<WeaponId, WeaponArt> = {};
   const projectiles: Record<ProjectileId, HTMLCanvasElement> = {};
   const enemies: Record<EnemyId, HTMLCanvasElement> = {};
+  const operatives: Record<OperativeId, HTMLCanvasElement> = {};
+
+  for (const operative of listOperatives()) {
+    operatives[operative.id] = bakeBoxSheet(operativeBoxes(operative.model));
+  }
 
   for (const enemy of listDesignedEnemies()) {
     const bake = enemyBake(enemy.id);
@@ -59,7 +67,8 @@ export async function loadGameArt(): Promise<GameArt> {
   }
 
   return {
-    player: bakePlayerSheet(),
+    player: operatives[getDefaultOperative().id],
+    operatives,
     enemies,
     weapons,
     projectiles,

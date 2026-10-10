@@ -31,3 +31,4 @@ Bastion（堡垒）强调据点防守与协同。适合后续大房间、多据�
 - 多人房间、多据点协同
 - 账号、匹配、服务端权威同步
 - 货币、掉落、HP 等数值系统（见 [systems.md](systems.md)）
+- 自定义皮肤、社区皮肤、自定名字与职业（官方执行员可在首页指派，见 [operatives.json](operatives.json)）

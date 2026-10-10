@@ -16,5 +16,5 @@
     "noUncheckedSideEffectImports": true,
     "resolveJsonModule": true
   },
-  "include": ["client/src", "docs/design/weapons.json", "docs/design/enemies.json"]
+  "include": ["client/src", "docs/design/weapons.json", "docs/design/enemies.json", "docs/design/operatives.json"]
 }

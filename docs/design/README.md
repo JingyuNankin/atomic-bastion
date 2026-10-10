@@ -5,7 +5,8 @@
 | 文件 | 内容 |
 | --- | --- |
 | [overview.md](overview.md) | 定位、核心循环、一期范围 |
-| [setting.md](setting.md) | 闸工、ОТР-3、铁脉堡垒与事故 |
+| [setting.md](setting.md) | 执行员、ОТР-3、铁脉堡垒与事故 |
+| [operatives.json](operatives.json) | 官方执行员名册（体模、代号、职务） |
 | [modes.md](modes.md) | 生存 / 保卫 / 收集 |
 | [combat.md](combat.md) | 移动、8 向射击、命中与击退 |
 | [enemies.md](enemies.md) | 敌人类别（预计 3–5 种） |
