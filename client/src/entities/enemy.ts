@@ -11,8 +11,9 @@ import {
   type Arena,
   type Player,
 } from './player';
-import { PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
-import { HYENA_CELL } from '../render/hyena-model';
+import { gaitCell, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
+import type { WalkPose } from '../render/gait';
+import { HYENA_CELL, HYENA_GAIT_CELL } from '../render/hyena-model';
 import { THEME } from '../ui/theme';
 
 const LUNGE_TIME = 0.14;
@@ -41,6 +42,7 @@ export type Enemy = {
   blast: number;
   motionTime: number;
   stepLift: number;
+  walk: WalkPose;
   entered: boolean;
 };
 
@@ -66,6 +68,7 @@ export function createEnemy(kind: EnemyId, x: number, y: number): Enemy {
     blast: 0,
     motionTime: Math.random() * 1.8,
     stepLift: 0,
+    walk: 'stand',
     entered: false,
   };
   nextUid += 1;
@@ -114,9 +117,11 @@ export function updateEnemies(
     }
 
     if (def.attack === 'suicide') {
+      enemy.walk = 'stand';
       steerSuicide(enemy, player, dist, dx, dy, dt, arena);
     } else if (def.attack === 'melee' && dist <= def.attackRange + def.attackReach) {
       enemy.stepLift = 0;
+      enemy.walk = 'stand';
       if (enemy.attackCooldown <= 0 && player.hp > 0 && dist > 0) {
         bite(enemy, player, arena);
       }
@@ -124,10 +129,12 @@ export function updateEnemies(
       stepHyena(enemy, dx, dy, dist, dt);
     } else if (dist > 0) {
       enemy.stepLift = 0;
+      enemy.walk = 'stand';
       enemy.x += (dx / dist) * def.speed * dt;
       enemy.y += (dy / dist) * def.speed * dt;
     } else {
       enemy.stepLift = 0;
+      enemy.walk = 'stand';
     }
 
     const personalSpace = px(1.375);
@@ -209,10 +216,15 @@ export function drawEnemy(
     context.restore();
   }
 
-  const cell = sheetCell(enemy.facing, cellOf(enemy.kind));
+  const gait = enemy.kind === 'e01-hyena';
+  const cell = gait
+    ? gaitCell(enemy.facing, enemy.walk, HYENA_GAIT_CELL)
+    : sheetCell(enemy.facing, cellOf(enemy.kind));
   const size = displaySize(enemy.kind);
+  const scale = PLAYER_DISPLAY_HEIGHT / PLAYER_CELL.height;
+  const destHeight = gait ? HYENA_GAIT_CELL.height * scale : size.height;
   const dir = unitFacing(enemy.facing);
-  const hop = enemy.stepLift * px(0.3);
+  const hop = gait ? 0 : enemy.stepLift * px(0.3);
   const destX = enemy.x - size.width / 2 + dir.x * enemy.lunge * LUNGE_DISTANCE;
   const destY = enemy.y - size.height + dir.y * enemy.lunge * LUNGE_DISTANCE - hop;
 
@@ -226,7 +238,7 @@ export function drawEnemy(
     destX,
     destY,
     size.width,
-    size.height,
+    destHeight,
   );
 
   if (enemy.hurt > 0) {
@@ -242,7 +254,7 @@ export function drawEnemy(
       destX,
       destY,
       size.width,
-      size.height,
+      destHeight,
     );
     context.restore();
   }
@@ -272,13 +284,16 @@ function stepHyena(enemy: Enemy, dx: number, dy: number, dist: number, dt: numbe
 
   if (phase >= stepTime) {
     enemy.stepLift = 0;
+    enemy.walk = 'stand';
     return;
   }
 
   const burst = stride / stepTime;
   enemy.x += (dx / dist) * burst * dt;
   enemy.y += (dy / dist) * burst * dt;
-  enemy.stepLift = Math.sin((phase / stepTime) * Math.PI);
+  enemy.stepLift = 0;
+  const cycleIndex = Math.floor(enemy.motionTime / cycle);
+  enemy.walk = cycleIndex % 2 === 0 ? 'left' : 'right';
 }
 
 function bite(enemy: Enemy, player: Player, arena: Arena): void {

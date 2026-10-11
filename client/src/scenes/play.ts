@@ -71,6 +71,8 @@ export function createPlayWorld(): PlayWorld {
       player.x = px(MAP_WIDTH) / 2;
       player.y = px(MAP_HEIGHT) / 2;
       player.facing = 's';
+      player.travel = 0;
+      player.walk = 'stand';
       player.hp = player.maxHp;
       equipWeapon(player, firstLoadoutWeapon(loadout));
       projectiles.length = 0;

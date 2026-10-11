@@ -35,13 +35,58 @@ function pushBox(positions: number[], colors: number[], box: Box): void {
   const y1 = cy + hy;
   const z0 = cz - hz;
   const z1 = cz + hz;
+  const pitch = box.pitch ?? 0;
+  const jointY = box.jointY ?? cy;
+  const jointZ = box.jointZ ?? cz;
+  const tilt = (quad: number[], normal: Rgb): [number[], Rgb] => {
+    if (pitch === 0) {
+      return [quad, normal];
+    }
 
-  pushFace(positions, colors, [x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0], [0, 1, 0], color);
-  pushFace(positions, colors, [x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1], [0, -1, 0], color);
-  pushFace(positions, colors, [x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1], [1, 0, 0], color);
-  pushFace(positions, colors, [x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0], [-1, 0, 0], color);
-  pushFace(positions, colors, [x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1], [0, 0, 1], color);
-  pushFace(positions, colors, [x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0], [0, 0, -1], color);
+    const spun: number[] = [];
+
+    for (let i = 0; i < quad.length; i += 3) {
+      const point = swing(quad[i], quad[i + 1], quad[i + 2], jointY, jointZ, pitch);
+      spun.push(point[0], point[1], point[2]);
+    }
+
+    return [spun, swingNormal(normal, pitch)];
+  };
+
+  const top = tilt([x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0], [0, 1, 0]);
+  const bottom = tilt([x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1], [0, -1, 0]);
+  const right = tilt([x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1], [1, 0, 0]);
+  const left = tilt([x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0], [-1, 0, 0]);
+  const front = tilt([x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1], [0, 0, 1]);
+  const back = tilt([x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0], [0, 0, -1]);
+
+  pushFace(positions, colors, top[0], top[1], color);
+  pushFace(positions, colors, bottom[0], bottom[1], color);
+  pushFace(positions, colors, right[0], right[1], color);
+  pushFace(positions, colors, left[0], left[1], color);
+  pushFace(positions, colors, front[0], front[1], color);
+  pushFace(positions, colors, back[0], back[1], color);
+}
+
+function swing(
+  x: number,
+  y: number,
+  z: number,
+  jointY: number,
+  jointZ: number,
+  pitch: number,
+): [number, number, number] {
+  const ly = y - jointY;
+  const lz = z - jointZ;
+  const c = Math.cos(pitch);
+  const s = Math.sin(pitch);
+  return [x, jointY + ly * c - lz * s, jointZ - ly * s + lz * c];
+}
+
+function swingNormal(normal: Rgb, pitch: number): Rgb {
+  const c = Math.cos(pitch);
+  const s = Math.sin(pitch);
+  return [normal[0], normal[1] * c - normal[2] * s, -normal[1] * s + normal[2] * c];
 }
 
 function pushFace(

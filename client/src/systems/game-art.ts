@@ -1,9 +1,18 @@
 import { listDesignedEnemies, type EnemyId } from '../enemies/catalog';
 import { getDefaultOperative, listOperatives, type OperativeId } from '../operatives/catalog';
-import { bakeBoxSheet, bakeFittedSprite, PLAYER_CELL } from '../render/bake-player-sheet';
+import {
+  bakeBoxSheet,
+  bakeFittedSprite,
+  bakeGaitSheet,
+  PLAYER_CELL,
+} from '../render/bake-player-sheet';
 import { operativeBoxes } from '../render/operative-model';
 import { droneBoxes } from '../render/drone-model';
-import { HYENA_CELL, HYENA_ORTHO, hyenaBoxes } from '../render/hyena-model';
+import {
+  HYENA_GAIT_CELL,
+  HYENA_GAIT_ORTHO,
+  hyenaBoxes,
+} from '../render/hyena-model';
 import { muzzleFlashBoxes, projectileBoxes } from '../render/projectile-model';
 import { PLAYER_ORTHO, type OrthoBounds } from '../render/player-gl';
 import type { Box } from '../render/player-model';
@@ -37,7 +46,7 @@ export async function loadGameArt(): Promise<GameArt> {
   const operatives: Record<OperativeId, HTMLCanvasElement> = {};
 
   for (const operative of listOperatives()) {
-    operatives[operative.id] = bakeBoxSheet(operativeBoxes(operative.model));
+    operatives[operative.id] = bakeGaitSheet(operativeBoxes(operative.model));
   }
 
   for (const enemy of listDesignedEnemies()) {
@@ -47,7 +56,9 @@ export async function loadGameArt(): Promise<GameArt> {
       continue;
     }
 
-    enemies[enemy.id] = bakeBoxSheet(bake.boxes, bake.frame, bake.ortho);
+    enemies[enemy.id] = bake.gait
+      ? bakeGaitSheet(bake.boxes, bake.frame, bake.ortho)
+      : bakeBoxSheet(bake.boxes, bake.frame, bake.ortho);
   }
 
   for (const weapon of listDesignedWeapons()) {
@@ -80,9 +91,15 @@ function enemyBake(id: EnemyId): {
   boxes: Box[];
   frame: { width: number; height: number };
   ortho?: OrthoBounds;
+  gait?: boolean;
 } | null {
   if (id === 'e01-hyena') {
-    return { boxes: hyenaBoxes(), frame: HYENA_CELL, ortho: HYENA_ORTHO };
+    return {
+      boxes: hyenaBoxes(),
+      frame: HYENA_GAIT_CELL,
+      ortho: HYENA_GAIT_ORTHO,
+      gait: true,
+    };
   }
 
   if (id === 'e02-drone') {

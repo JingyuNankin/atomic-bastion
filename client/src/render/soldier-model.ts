@@ -16,12 +16,12 @@ const BOARD: Rgb = [0.58, 0.16, 0.13];
 
 export function soldierBoxes(): Box[] {
   return [
-    { cx: -0.11, cy: 0.13, cz: 0.02, hx: 0.08, hy: 0.13, hz: 0.11, color: BOOT },
-    { cx: 0.11, cy: 0.13, cz: 0.02, hx: 0.08, hy: 0.13, hz: 0.11, color: BOOT },
-    { cx: -0.11, cy: 0.28, cz: 0.01, hx: 0.09, hy: 0.045, hz: 0.085, color: KHAKI_DARK },
-    { cx: 0.11, cy: 0.28, cz: 0.01, hx: 0.09, hy: 0.045, hz: 0.085, color: KHAKI_DARK },
-    { cx: -0.1, cy: 0.4, cz: 0.01, hx: 0.075, hy: 0.09, hz: 0.075, color: KHAKI },
-    { cx: 0.1, cy: 0.4, cz: 0.01, hx: 0.075, hy: 0.09, hz: 0.075, color: KHAKI },
+    { cx: -0.11, cy: 0.13, cz: 0.02, hx: 0.08, hy: 0.13, hz: 0.11, color: BOOT, limb: 'left-leg' },
+    { cx: 0.11, cy: 0.13, cz: 0.02, hx: 0.08, hy: 0.13, hz: 0.11, color: BOOT, limb: 'right-leg' },
+    { cx: -0.11, cy: 0.28, cz: 0.01, hx: 0.09, hy: 0.045, hz: 0.085, color: KHAKI_DARK, limb: 'left-leg' },
+    { cx: 0.11, cy: 0.28, cz: 0.01, hx: 0.09, hy: 0.045, hz: 0.085, color: KHAKI_DARK, limb: 'right-leg' },
+    { cx: -0.1, cy: 0.4, cz: 0.01, hx: 0.075, hy: 0.09, hz: 0.075, color: KHAKI, limb: 'left-leg' },
+    { cx: 0.1, cy: 0.4, cz: 0.01, hx: 0.075, hy: 0.09, hz: 0.075, color: KHAKI, limb: 'right-leg' },
     { cx: 0, cy: 0.5, cz: 0.01, hx: 0.17, hy: 0.07, hz: 0.09, color: KHAKI },
     { cx: 0, cy: 0.78, cz: 0.02, hx: 0.17, hy: 0.22, hz: 0.11, color: KHAKI },
     { cx: -0.07, cy: 0.86, cz: 0.135, hx: 0.035, hy: 0.03, hz: 0.012, color: KHAKI_DARK },

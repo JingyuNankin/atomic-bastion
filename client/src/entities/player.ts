@@ -1,4 +1,5 @@
-import { PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
+import { GAIT_CELL, gaitCell, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
+import type { WalkPose } from '../render/gait';
 import {
   axisToDirection,
   directionAngle,
@@ -17,6 +18,9 @@ export const PLAYER_HEIGHT = 6;
 export const PLAYER_FOOT_SIZE = 1.5;
 /** 移速，世界单位/秒。 */
 export const PLAYER_SPEED = 12.5;
+/** 左、立、右、立走完一圈的路程，世界单位。 */
+const WALK_CYCLE = 4;
+const WALK_BEAT: readonly WalkPose[] = ['left', 'stand', 'right', 'stand'];
 export const PLAYER_DISPLAY_HEIGHT = px(PLAYER_HEIGHT);
 export const PLAYER_MAX_HP = 100;
 
@@ -35,6 +39,9 @@ export type Player = {
   maxHp: number;
   recoil: number;
   muzzleFlash: number;
+  /** 累计路程，像素。停下不清零，下次迈步接着走。 */
+  travel: number;
+  walk: WalkPose;
 };
 
 export type Arena = {
@@ -60,6 +67,8 @@ export function createPlayer(
     maxHp: PLAYER_MAX_HP,
     recoil: 0,
     muzzleFlash: 0,
+    travel: 0,
+    walk: 'stand',
   };
 }
 
@@ -77,6 +86,8 @@ export function updatePlayer(
   arena: Arena,
 ): void {
   const { x: ax, y: ay } = axis;
+  const originX = player.x;
+  const originY = player.y;
 
   if (ax !== 0 || ay !== 0) {
     const facing = axisToDirection(ax, ay);
@@ -92,6 +103,22 @@ export function updatePlayer(
   }
 
   clampPlayer(player, arena);
+
+  if (ax === 0 && ay === 0) {
+    if (dt > 0) {
+      player.walk = 'stand';
+    }
+    return;
+  }
+
+  const moved = Math.hypot(player.x - originX, player.y - originY);
+
+  if (moved > 0) {
+    player.travel += moved;
+    player.walk = walkAt(player.travel);
+  } else {
+    player.walk = 'stand';
+  }
 }
 
 export function muzzlePoint(player: Player): { x: number; y: number } {
@@ -121,10 +148,15 @@ export function drawPlayer(
     return;
   }
 
-  const dest = spriteDest(player);
+  const body = bodyDest(player);
+  const weapon = spriteDest(player);
   const kick = unitFacing(player.facing);
-  dest.x -= kick.x * player.recoil * RECOIL_KICK;
-  dest.y -= kick.y * player.recoil * RECOIL_KICK;
+  const kickX = kick.x * player.recoil * RECOIL_KICK;
+  const kickY = kick.y * player.recoil * RECOIL_KICK;
+  body.x -= kickX;
+  body.y -= kickY;
+  weapon.x -= kickX;
+  weapon.y -= kickY;
 
   const weaponArt = art.weapons[player.weaponId];
   const overlay =
@@ -134,18 +166,19 @@ export function drawPlayer(
   context.imageSmoothingEnabled = false;
 
   if (overlay && behind) {
-    blitCell(context, overlay, player.facing, dest);
+    blitCell(context, overlay, player.facing, weapon);
   }
 
-  blitCell(
+  blitWalk(
     context,
     art.operatives[player.operativeId] ?? art.player,
     player.facing,
-    dest,
+    player.walk,
+    body,
   );
 
   if (overlay && !behind) {
-    blitCell(context, overlay, player.facing, dest);
+    blitCell(context, overlay, player.facing, weapon);
   }
 
   if (player.muzzleFlash > 0) {
@@ -167,6 +200,27 @@ function drawMuzzleFlash(
   context.globalAlpha = 0.35 + player.muzzleFlash * 0.65;
   context.drawImage(flash, -size / 2, -size / 2, size, size);
   context.restore();
+}
+
+function blitWalk(
+  context: CanvasRenderingContext2D,
+  sheet: HTMLCanvasElement,
+  facing: Direction,
+  pose: WalkPose,
+  dest: { x: number; y: number; width: number; height: number },
+): void {
+  const cell = gaitCell(facing, pose);
+  context.drawImage(
+    sheet,
+    cell.sx,
+    cell.sy,
+    cell.sw,
+    cell.sh,
+    dest.x,
+    dest.y,
+    dest.width,
+    dest.height,
+  );
 }
 
 function blitCell(
@@ -194,6 +248,29 @@ function clampPlayer(player: Player, arena: Arena): void {
 
   player.x = clamp(player.x, arena.left + half, arena.right - half);
   player.y = clamp(player.y, arena.top + half, arena.bottom - half);
+}
+
+function bodyDest(player: Player): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
+  const scale = PLAYER_DISPLAY_HEIGHT / PLAYER_CELL.height;
+  const width = GAIT_CELL.width * scale;
+  const height = GAIT_CELL.height * scale;
+  return {
+    x: player.x - width / 2,
+    y: player.y - PLAYER_DISPLAY_HEIGHT,
+    width,
+    height,
+  };
+}
+
+function walkAt(travel: number): WalkPose {
+  const cycle = px(WALK_CYCLE);
+  const index = Math.floor((travel % cycle) / (cycle / WALK_BEAT.length));
+  return WALK_BEAT[index] ?? 'stand';
 }
 
 function spriteDest(player: Player): {

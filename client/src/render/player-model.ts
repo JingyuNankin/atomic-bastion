@@ -1,5 +1,13 @@
 export type Rgb = readonly [number, number, number];
 
+export type Limb =
+  | 'left-leg'
+  | 'right-leg'
+  | 'front-left'
+  | 'front-right'
+  | 'hind-left'
+  | 'hind-right';
+
 export type Box = {
   cx: number;
   cy: number;
@@ -8,6 +16,11 @@ export type Box = {
   hy: number;
   hz: number;
   color: Rgb;
+  limb?: Limb;
+  /** 绕髋部、平行于 x 轴的转角。正值把脚摆向身前。 */
+  pitch?: number;
+  jointY?: number;
+  jointZ?: number;
 };
 
 const HAIR: Rgb = [0.12, 0.12, 0.13];
@@ -20,10 +33,10 @@ const EYE: Rgb = [0.08, 0.08, 0.09];
 
 export function playerBoxes(): Box[] {
   return [
-    { cx: -0.11, cy: 0.055, cz: 0.03, hx: 0.075, hy: 0.055, hz: 0.11, color: BOOT },
-    { cx: 0.11, cy: 0.055, cz: 0.03, hx: 0.075, hy: 0.055, hz: 0.11, color: BOOT },
-    { cx: -0.1, cy: 0.26, cz: 0.01, hx: 0.07, hy: 0.16, hz: 0.07, color: PANTS },
-    { cx: 0.1, cy: 0.26, cz: 0.01, hx: 0.07, hy: 0.16, hz: 0.07, color: PANTS },
+    { cx: -0.11, cy: 0.055, cz: 0.03, hx: 0.075, hy: 0.055, hz: 0.11, color: BOOT, limb: 'left-leg' },
+    { cx: 0.11, cy: 0.055, cz: 0.03, hx: 0.075, hy: 0.055, hz: 0.11, color: BOOT, limb: 'right-leg' },
+    { cx: -0.1, cy: 0.26, cz: 0.01, hx: 0.07, hy: 0.16, hz: 0.07, color: PANTS, limb: 'left-leg' },
+    { cx: 0.1, cy: 0.26, cz: 0.01, hx: 0.07, hy: 0.16, hz: 0.07, color: PANTS, limb: 'right-leg' },
     { cx: 0, cy: 0.48, cz: 0.01, hx: 0.17, hy: 0.08, hz: 0.09, color: PANTS },
     { cx: 0, cy: 0.78, cz: 0.02, hx: 0.16, hy: 0.22, hz: 0.1, color: SHIRT },
     { cx: 0, cy: 0.76, cz: 0.14, hx: 0.035, hy: 0.16, hz: 0.03, color: TIE },

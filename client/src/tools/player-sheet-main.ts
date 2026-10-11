@@ -3,13 +3,15 @@ import { getDefaultOperative, listOperatives } from '../operatives/catalog';
 import {
   bakeBoxSheet,
   bakeFittedSprite,
+  bakeGaitSheet,
+  gaitCell,
   PLAYER_CELL,
   playerSheetToPng,
   sheetCell,
 } from '../render/bake-player-sheet';
 import { operativeBoxes } from '../render/operative-model';
 import { droneBoxes } from '../render/drone-model';
-import { HYENA_CELL, HYENA_ORTHO, hyenaBoxes } from '../render/hyena-model';
+import { HYENA_GAIT_CELL, HYENA_GAIT_ORTHO, hyenaBoxes } from '../render/hyena-model';
 import {
   createPlayer,
   drawPlayer,
@@ -40,7 +42,7 @@ try {
   const sheets = new Map(
     listOperatives().map((operative) => [
       operative.id,
-      bakeBoxSheet(operativeBoxes(operative.model)),
+      bakeGaitSheet(operativeBoxes(operative.model)),
     ]),
   );
   const player = sheets.get(gatekeeper.id);
@@ -69,7 +71,7 @@ try {
   mountSheet(
     gallery,
     `${hyena.name} · ${hyena.code}`,
-    bakeBoxSheet(hyenaBoxes(), HYENA_CELL, HYENA_ORTHO),
+    bakeGaitSheet(hyenaBoxes(), HYENA_GAIT_CELL, HYENA_GAIT_ORTHO),
     'e01-hyena.png',
   );
   mountSheet(
@@ -141,48 +143,47 @@ function compositeSheet(
   }
 
   context.imageSmoothingEnabled = false;
+  context.drawImage(player, 0, 0);
 
   for (const direction of DIRECTIONS) {
-    const cell = sheetCell(direction);
+    const body = gaitCell(direction, 'stand');
+    const weapon = sheetCell(direction);
     const behind = direction === 'n' || direction === 'nw' || direction === 'ne';
 
     if (behind) {
       context.drawImage(
         overlay,
-        cell.sx,
-        cell.sy,
-        cell.sw,
-        cell.sh,
-        cell.sx,
-        cell.sy,
-        cell.sw,
-        cell.sh,
+        weapon.sx,
+        weapon.sy,
+        weapon.sw,
+        weapon.sh,
+        body.sx,
+        body.sy,
+        weapon.sw,
+        weapon.sh,
       );
-    }
-
-    context.drawImage(
-      player,
-      cell.sx,
-      cell.sy,
-      cell.sw,
-      cell.sh,
-      cell.sx,
-      cell.sy,
-      cell.sw,
-      cell.sh,
-    );
-
-    if (!behind) {
+      context.drawImage(
+        player,
+        body.sx,
+        body.sy,
+        body.sw,
+        body.sh,
+        body.sx,
+        body.sy,
+        body.sw,
+        body.sh,
+      );
+    } else {
       context.drawImage(
         overlay,
-        cell.sx,
-        cell.sy,
-        cell.sw,
-        cell.sh,
-        cell.sx,
-        cell.sy,
-        cell.sw,
-        cell.sh,
+        weapon.sx,
+        weapon.sy,
+        weapon.sw,
+        weapon.sh,
+        body.sx,
+        body.sy,
+        weapon.sw,
+        weapon.sh,
       );
     }
   }
