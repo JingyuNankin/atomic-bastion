@@ -4,6 +4,7 @@ import {
   type Direction,
 } from '../game/direction';
 import { getEnemy, type EnemyId } from '../enemies/catalog';
+import { px } from '../game/units';
 import {
   PLAYER_DISPLAY_HEIGHT,
   updatePlayer,
@@ -15,7 +16,7 @@ import { HYENA_CELL } from '../render/hyena-model';
 import { THEME } from '../ui/theme';
 
 const LUNGE_TIME = 0.14;
-const LUNGE_DISTANCE = 16;
+const LUNGE_DISTANCE = px(1);
 const BLAST_TIME = 0.32;
 const DRONE_PHASES = [
   { time: 0.55, pace: 'hover' },
@@ -39,6 +40,8 @@ export type Enemy = {
   fuse: number;
   blast: number;
   motionTime: number;
+  stepLift: number;
+  entered: boolean;
 };
 
 let nextUid = 1;
@@ -62,6 +65,8 @@ export function createEnemy(kind: EnemyId, x: number, y: number): Enemy {
     fuse: -1,
     blast: 0,
     motionTime: Math.random() * 1.8,
+    stepLift: 0,
+    entered: false,
   };
   nextUid += 1;
   return enemy;
@@ -111,26 +116,33 @@ export function updateEnemies(
     if (def.attack === 'suicide') {
       steerSuicide(enemy, player, dist, dx, dy, dt, arena);
     } else if (def.attack === 'melee' && dist <= def.attackRange + def.attackReach) {
+      enemy.stepLift = 0;
       if (enemy.attackCooldown <= 0 && player.hp > 0 && dist > 0) {
         bite(enemy, player, arena);
       }
+    } else if (enemy.kind === 'e01-hyena' && dist > 0) {
+      stepHyena(enemy, dx, dy, dist, dt);
     } else if (dist > 0) {
+      enemy.stepLift = 0;
       enemy.x += (dx / dist) * def.speed * dt;
       enemy.y += (dy / dist) * def.speed * dt;
+    } else {
+      enemy.stepLift = 0;
     }
 
-    if (def.locomotion === 'ground' && dist > 0 && dist < 22) {
-      enemy.x -= (dx / dist) * (22 - dist);
-      enemy.y -= (dy / dist) * (22 - dist);
+    const personalSpace = px(1.375);
+    if (def.locomotion === 'ground' && dist > 0 && dist < personalSpace) {
+      enemy.x -= (dx / dist) * (personalSpace - dist);
+      enemy.y -= (dy / dist) * (personalSpace - dist);
     }
 
-    clampEnemy(enemy, arena);
+    holdInArena(enemy, arena);
   }
 
   separateBodies(enemies);
 
   for (const enemy of enemies) {
-    clampEnemy(enemy, arena);
+    holdInArena(enemy, arena);
   }
 }
 
@@ -200,8 +212,9 @@ export function drawEnemy(
   const cell = sheetCell(enemy.facing, cellOf(enemy.kind));
   const size = displaySize(enemy.kind);
   const dir = unitFacing(enemy.facing);
+  const hop = enemy.stepLift * px(0.3);
   const destX = enemy.x - size.width / 2 + dir.x * enemy.lunge * LUNGE_DISTANCE;
-  const destY = enemy.y - size.height + dir.y * enemy.lunge * LUNGE_DISTANCE;
+  const destY = enemy.y - size.height + dir.y * enemy.lunge * LUNGE_DISTANCE - hop;
 
   context.imageSmoothingEnabled = false;
   context.drawImage(
@@ -245,6 +258,27 @@ export function drawEnemy(
       6,
     );
   }
+}
+
+const HYENA_STRIDE = 2.5;
+const HYENA_STEP_TIME = 0.22;
+
+function stepHyena(enemy: Enemy, dx: number, dy: number, dist: number, dt: number): void {
+  const def = getEnemy(enemy.kind);
+  const stride = px(HYENA_STRIDE);
+  const cycle = stride / Math.max(def.speed, 1);
+  const stepTime = Math.min(HYENA_STEP_TIME, cycle * 0.7);
+  const phase = enemy.motionTime % cycle;
+
+  if (phase >= stepTime) {
+    enemy.stepLift = 0;
+    return;
+  }
+
+  const burst = stride / stepTime;
+  enemy.x += (dx / dist) * burst * dt;
+  enemy.y += (dy / dist) * burst * dt;
+  enemy.stepLift = Math.sin((phase / stepTime) * Math.PI);
 }
 
 function bite(enemy: Enemy, player: Player, arena: Arena): void {
@@ -435,6 +469,33 @@ function displaySize(kind: EnemyId): { width: number; height: number } {
     width: cell.width * scale,
     height: cell.height * scale,
   };
+}
+
+function holdInArena(enemy: Enemy, arena: Arena): void {
+  if (enemy.hp <= 0) {
+    return;
+  }
+
+  if (!enemy.entered) {
+    if (!fullyInside(enemy, arena)) {
+      return;
+    }
+
+    enemy.entered = true;
+  }
+
+  clampEnemy(enemy, arena);
+}
+
+function fullyInside(enemy: Enemy, arena: Arena): boolean {
+  const size = displaySize(enemy.kind);
+  const halfW = size.width / 2;
+  return (
+    enemy.x >= arena.left + halfW &&
+    enemy.x <= arena.right - halfW &&
+    enemy.y >= arena.top + size.height &&
+    enemy.y <= arena.bottom
+  );
 }
 
 function clampEnemy(enemy: Enemy, arena: Arena): void {

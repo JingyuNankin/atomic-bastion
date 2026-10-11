@@ -1,4 +1,5 @@
 import catalog from '../../../docs/design/weapons.json';
+import { px } from '../game/units';
 
 export type WeaponId = string;
 export type ProjectileId = string;
@@ -51,9 +52,26 @@ export type WeaponCatalog = {
   weapons: WeaponDef[];
 };
 
-const weaponsById = new Map(
-  (catalog.weapons as WeaponDef[]).map((weapon) => [weapon.id, weapon]),
-);
+const WORLD_LENGTHS = [
+  'projectileSpeed',
+  'knockback',
+  'range',
+  'blastRadius',
+] as const satisfies readonly (keyof WeaponDef)[];
+
+function toPixels(weapon: WeaponDef): WeaponDef {
+  const next = { ...weapon };
+
+  for (const key of WORLD_LENGTHS) {
+    next[key] = px(weapon[key]);
+  }
+
+  return next;
+}
+
+const weapons = (catalog.weapons as WeaponDef[]).map(toPixels);
+
+const weaponsById = new Map(weapons.map((weapon) => [weapon.id, weapon]));
 
 const projectilesById = new Map(
   (catalog.projectiles as ProjectileDef[]).map((projectile) => [
@@ -65,11 +83,11 @@ const projectilesById = new Map(
 export const DEFAULT_WEAPON_ID = catalog.defaultWeaponId;
 
 export function listWeapons(): WeaponDef[] {
-  return (catalog.weapons as WeaponDef[]).filter((weapon) => weapon.enabled);
+  return weapons.filter((weapon) => weapon.enabled);
 }
 
 export function listDesignedWeapons(): WeaponDef[] {
-  return catalog.weapons as WeaponDef[];
+  return weapons;
 }
 
 export function listProjectiles(): ProjectileDef[] {

@@ -8,15 +8,21 @@ import {
 } from '../game/direction';
 import type { GameArt } from '../systems/game-art';
 import { getDefaultOperative, type OperativeId } from '../operatives/catalog';
+import { px } from '../game/units';
 import { DEFAULT_WEAPON_ID, getWeapon, type WeaponId } from '../weapons/catalog';
 
-export const PLAYER_SPEED = 200;
-export const PLAYER_DISPLAY_HEIGHT = 96;
+/** 身高，世界单位。 */
+export const PLAYER_HEIGHT = 6;
+/** 足底碰撞正方形的边长，世界单位。整块留在地图内。 */
+export const PLAYER_FOOT_SIZE = 1.5;
+/** 移速，世界单位/秒。 */
+export const PLAYER_SPEED = 12.5;
+export const PLAYER_DISPLAY_HEIGHT = px(PLAYER_HEIGHT);
 export const PLAYER_MAX_HP = 100;
 
 const WEAPON_BEHIND = new Set<Direction>(['n', 'nw', 'ne']);
 const RECOIL_KICK = 8;
-const MUZZLE_REACH = 34;
+const MUZZLE_REACH = px(2.125);
 
 export type Player = {
   x: number;
@@ -80,8 +86,9 @@ export function updatePlayer(
     }
 
     const length = Math.hypot(ax, ay);
-    player.x += (ax / length) * PLAYER_SPEED * dt;
-    player.y += (ay / length) * PLAYER_SPEED * dt;
+    const speed = px(PLAYER_SPEED);
+    player.x += (ax / length) * speed * dt;
+    player.y += (ay / length) * speed * dt;
   }
 
   clampPlayer(player, arena);
@@ -183,16 +190,10 @@ function blitCell(
 }
 
 function clampPlayer(player: Player, arena: Arena): void {
-  const size = displaySize();
-  const halfW = size.width / 2;
-  const minX = arena.left + halfW;
-  const maxX = arena.right - halfW;
-  const minY = arena.top + size.height;
-  const maxY = arena.bottom;
+  const half = px(PLAYER_FOOT_SIZE) / 2;
 
-  player.x =
-    minX <= maxX ? clamp(player.x, minX, maxX) : (arena.left + arena.right) / 2;
-  player.y = minY <= maxY ? clamp(player.y, minY, maxY) : arena.bottom;
+  player.x = clamp(player.x, arena.left + half, arena.right - half);
+  player.y = clamp(player.y, arena.top + half, arena.bottom - half);
 }
 
 function spriteDest(player: Player): {

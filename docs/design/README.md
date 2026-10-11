@@ -8,6 +8,7 @@
 | [setting.md](setting.md) | 执行员、ОТР-3、铁脉堡垒与事故 |
 | [operatives.json](operatives.json) | 官方执行员名册（体模、代号、职务） |
 | [modes.md](modes.md) | 生存 / 保卫 / 收集 |
+| [scale.md](scale.md) | 世界单位与有限地图 |
 | [combat.md](combat.md) | 移动、8 向射击、命中与击退 |
 | [enemies.md](enemies.md) | 敌人类别（预计 3–5 种） |
 | [enemies.json](enemies.json) | 敌人数值表 |

@@ -25,7 +25,7 @@ let elapsed = 0;
 void loadGameArt()
   .then((art) => {
     world.setArt(art);
-    world.enter(view.width, view.height);
+    world.enter();
     status.textContent = '空格射击预览 · 左半手枪 · 右半冲锋枪';
     window.requestAnimationFrame(frame);
   })
@@ -46,7 +46,7 @@ function frame(time: number): void {
   }
 
   const firing = weapon === 'w02-smg' || elapsed % 0.5 < 0.08;
-  world.update(dt, { x: 1, y: 0 }, firing, view.width, view.height);
+  world.update(dt, { x: 1, y: 0 }, firing);
   world.draw(context, view.width, view.height, time);
   window.requestAnimationFrame(frame);
 }

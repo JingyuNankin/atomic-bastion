@@ -128,18 +128,12 @@ export function startGame(root: HTMLElement): void {
     }
 
     if (next === 'play') {
-      const { width, height } = viewSize();
-      world.enter(width, height);
+      world.enter();
     }
   }
 
   const onResize = () => {
     syncCanvasSize(canvas);
-
-    if (scene === 'play') {
-      const { width, height } = viewSize();
-      world.update(0, { x: 0, y: 0 }, false, width, height);
-    }
   };
 
   const onKeyDown = (event: KeyboardEvent) => {
@@ -225,15 +219,15 @@ export function startGame(root: HTMLElement): void {
     const { width, height, dpr } = viewSize();
 
     if (scene === 'menu') {
-      drawMenuBackdrop(context, canvas.width, canvas.height, time);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawMenuBackdrop(context, width, height, time);
+      context.setTransform(1, 0, 0, 1, 0, 0);
     } else {
       const paused = locker.isOpen() || pauseMenu.isOpen() || stub.isOpen();
       world.update(
         paused ? 0 : dt,
         paused ? { x: 0, y: 0 } : input.axis(),
         paused ? false : input.firing(),
-        width,
-        height,
       );
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       world.draw(context, width, height, time);

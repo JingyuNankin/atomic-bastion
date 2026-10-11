@@ -3,6 +3,7 @@ import {
   createPlayer,
   drawPlayer,
   equipWeapon,
+  PLAYER_DISPLAY_HEIGHT,
   updatePlayer,
   type Arena,
   type Player,
@@ -13,6 +14,8 @@ import {
   type Projectile,
 } from '../entities/projectile';
 import type { Axis } from '../game/direction';
+import { ARENA, cameraFor, MAP_HEIGHT, MAP_WIDTH } from '../game/map';
+import { px } from '../game/units';
 import {
   createCombat,
   DENIED_FIRE_TIME,
@@ -27,21 +30,13 @@ import { drawWeaponHud, weaponHudLayout, weaponSlots } from '../ui/hud';
 import { THEME } from '../ui/theme';
 import { getWeapon, listDesignedWeapons, type WeaponId } from '../weapons/catalog';
 
-const ARENA_INSET = 48;
-
 export type PlayWorld = {
   setArt: (art: GameArt) => void;
   setOperative: (operativeId: OperativeId) => void;
   setLoadout: (slots: Loadout) => void;
-  enter: (width: number, height: number) => void;
+  enter: () => void;
   equip: (weaponId: WeaponId) => void;
-  update: (
-    dt: number,
-    axis: Axis,
-    firing: boolean,
-    width: number,
-    height: number,
-  ) => void;
+  update: (dt: number, axis: Axis, firing: boolean) => void;
   draw: (
     context: CanvasRenderingContext2D,
     width: number,
@@ -58,13 +53,6 @@ export function createPlayWorld(): PlayWorld {
   const projectiles: Projectile[] = [];
   const combat = createCombat();
 
-  const arenaOf = (width: number, height: number): Arena => ({
-    left: ARENA_INSET,
-    top: ARENA_INSET,
-    right: Math.max(ARENA_INSET, width - ARENA_INSET),
-    bottom: Math.max(ARENA_INSET, height - ARENA_INSET),
-  });
-
   return {
     setArt(next) {
       art = next;
@@ -79,28 +67,19 @@ export function createPlayWorld(): PlayWorld {
         resetCombat(combat);
       }
     },
-    enter(width, height) {
-      player.x = width / 2;
-      player.y = height / 2;
+    enter() {
+      player.x = px(MAP_WIDTH) / 2;
+      player.y = px(MAP_HEIGHT) / 2;
       player.facing = 's';
       player.hp = player.maxHp;
       equipWeapon(player, firstLoadoutWeapon(loadout));
       projectiles.length = 0;
       enemies.length = 0;
       resetCombat(combat);
-      const arena = arenaOf(width, height);
-      updatePlayer(player, 0, { x: 0, y: 0 }, arena);
+      updatePlayer(player, 0, { x: 0, y: 0 }, ARENA);
       enemies.push(
-        createEnemy(
-          'e01-hyena',
-          player.x,
-          Math.max(arena.top + 120, player.y - 320),
-        ),
-        createEnemy(
-          'e02-drone',
-          Math.min(arena.right - 90, player.x + 260),
-          Math.max(arena.top + 120, player.y - 140),
-        ),
+        createEnemy('e01-hyena', px(MAP_WIDTH) / 2, ARENA.top - px(3)),
+        createEnemy('e02-drone', ARENA.right + px(4), px(MAP_HEIGHT) * 0.35),
       );
     },
     equip(weaponId) {
@@ -108,30 +87,36 @@ export function createPlayWorld(): PlayWorld {
       equipWeapon(player, weaponId);
       resetCombat(combat);
     },
-    update(dt, axis, firing, width, height) {
-      const arena = arenaOf(width, height);
-      updatePlayer(player, dt, axis, arena);
+    update(dt, axis, firing) {
+      updatePlayer(player, dt, axis, ARENA);
       updateCombat(combat, player, projectiles, dt, firing);
-      updateProjectiles(projectiles, dt, arena);
-      updateEnemies(enemies, player, dt, arena);
+      updateProjectiles(projectiles, dt, ARENA);
+      updateEnemies(enemies, player, dt, ARENA);
       resolveProjectileHits(projectiles, enemies, dt);
     },
     draw(context, width, height, _time) {
       context.fillStyle = THEME.soot;
       context.fillRect(0, 0, width, height);
 
-      const arena = arenaOf(width, height);
+      const camera = cameraFor(
+        width,
+        height,
+        player.x,
+        player.y - PLAYER_DISPLAY_HEIGHT * 0.4,
+      );
 
+      context.save();
+      context.translate(-camera.x, -camera.y);
       context.fillStyle = THEME.concreteFloor;
       context.fillRect(
-        arena.left,
-        arena.top,
-        arena.right - arena.left,
-        arena.bottom - arena.top,
+        ARENA.left,
+        ARENA.top,
+        ARENA.right - ARENA.left,
+        ARENA.bottom - ARENA.top,
       );
-      drawConcreteStains(context, arena);
-      drawJoints(context, arena);
-      drawArenaEdge(context, arena, width, height);
+      drawConcreteStains(context, ARENA);
+      drawJoints(context, ARENA);
+      drawArenaEdge(context, ARENA, camera, width, height);
 
       const drawOrder = [
         {
@@ -154,6 +139,7 @@ export function createPlayWorld(): PlayWorld {
       }
 
       drawProjectiles(context, projectiles, art);
+      context.restore();
       const equipped = getWeapon(player.weaponId);
       drawWeaponHud(
         context,
@@ -198,15 +184,17 @@ export function drawMenuBackdrop(
 ): void {
   context.fillStyle = THEME.soot;
   context.fillRect(0, 0, width, height);
+  const mapW = ARENA.right - ARENA.left;
+  const mapH = ARENA.bottom - ARENA.top;
   context.fillStyle = THEME.concreteDark;
-  context.fillRect(48, 48, Math.max(0, width - 96), Math.max(0, height - 96));
+  context.fillRect((width - mapW) / 2, (height - mapH) / 2, mapW, mapH);
 }
 
 function drawJoints(
   context: CanvasRenderingContext2D,
   arena: Arena,
 ): void {
-  const step = 48;
+  const step = px(3);
   context.beginPath();
   context.strokeStyle = THEME.joint;
   context.lineWidth = 1;
@@ -231,10 +219,10 @@ function drawConcreteStains(
   const width = arena.right - arena.left;
   const height = arena.bottom - arena.top;
   const stains = [
-    [0.16, 0.2, 96, 42],
-    [0.58, 0.46, 128, 56],
-    [0.32, 0.7, 72, 34],
-    [0.76, 0.16, 54, 54],
+    [0.16, 0.2, px(6), px(2.625)],
+    [0.58, 0.46, px(8), px(3.5)],
+    [0.32, 0.7, px(4.5), px(2.125)],
+    [0.76, 0.16, px(3.375), px(3.375)],
   ] as const;
 
   context.fillStyle = THEME.stain;
@@ -251,6 +239,7 @@ function drawConcreteStains(
 function drawArenaEdge(
   context: CanvasRenderingContext2D,
   arena: Arena,
+  camera: { x: number; y: number },
   width: number,
   height: number,
 ): void {
@@ -263,8 +252,11 @@ function drawArenaEdge(
   const spanH = bottom - top;
   const slots = weaponHudLayout(width, height);
   const pad = 16;
-  const bandTop = Math.max(top + lip, slots.y - pad);
-  const bandBottom = Math.min(bottom - lip, slots.y + slots.height + pad);
+  const edgeScreenX = right - camera.x;
+  const overlapsHud =
+    edgeScreenX >= slots.x - pad && edgeScreenX <= width;
+  const bandTop = slots.y + camera.y - pad;
+  const bandBottom = slots.y + slots.height + camera.y + pad;
 
   context.save();
   context.globalAlpha = 0.72;
@@ -273,12 +265,19 @@ function drawArenaEdge(
   context.fillRect(left, bottom - lip, spanW, lip);
   context.fillRect(left, top + lip, lip, Math.max(0, spanH - lip * 2));
 
-  if (bandTop > top + lip) {
-    context.fillRect(right - lip, top + lip, lip, bandTop - (top + lip));
-  }
+  if (!overlapsHud) {
+    context.fillRect(right - lip, top + lip, lip, Math.max(0, spanH - lip * 2));
+  } else {
+    const gapTop = Math.max(top + lip, bandTop);
+    const gapBottom = Math.min(bottom - lip, bandBottom);
 
-  if (bandBottom < bottom - lip) {
-    context.fillRect(right - lip, bandBottom, lip, bottom - lip - bandBottom);
+    if (gapTop > top + lip) {
+      context.fillRect(right - lip, top + lip, lip, gapTop - (top + lip));
+    }
+
+    if (gapBottom < bottom - lip) {
+      context.fillRect(right - lip, gapBottom, lip, bottom - lip - gapBottom);
+    }
   }
 
   context.restore();

@@ -1,3 +1,4 @@
+import { px } from '../game/units';
 import type { Arena } from './player';
 import type { GameArt } from '../systems/game-art';
 import { getProjectile, type ProjectileId } from '../weapons/catalog';
@@ -27,7 +28,7 @@ export type Projectile = {
   struck?: number[];
 };
 
-const DESPAWN_PAD = 48;
+const DESPAWN_PAD = px(3);
 const BEAM_RGB = { r: 0, g: 255, b: 80 };
 
 export function updateProjectiles(

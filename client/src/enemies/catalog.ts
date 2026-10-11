@@ -1,4 +1,5 @@
 import catalog from '../../../docs/design/enemies.json';
+import { px } from '../game/units';
 
 export type EnemyId = string;
 export type AttackKind = 'melee' | 'suicide';
@@ -37,16 +38,38 @@ export type EnemyCatalog = {
   enemies: EnemyDef[];
 };
 
-const enemiesById = new Map(
-  (catalog.enemies as EnemyDef[]).map((enemy) => [enemy.id, enemy]),
-);
+const WORLD_LENGTHS = [
+  'speed',
+  'cruiseSpeed',
+  'attackRange',
+  'attackReach',
+  'attackKnockback',
+  'blastRadius',
+  'hitRadius',
+  'hitLift',
+  'bodyRadius',
+] as const satisfies readonly (keyof EnemyDef)[];
+
+function toPixels(enemy: EnemyDef): EnemyDef {
+  const next = { ...enemy };
+
+  for (const key of WORLD_LENGTHS) {
+    next[key] = px(enemy[key]);
+  }
+
+  return next;
+}
+
+const enemies = (catalog.enemies as EnemyDef[]).map(toPixels);
+
+const enemiesById = new Map(enemies.map((enemy) => [enemy.id, enemy]));
 
 export function listEnemies(): EnemyDef[] {
-  return (catalog.enemies as EnemyDef[]).filter((enemy) => enemy.enabled);
+  return enemies.filter((enemy) => enemy.enabled);
 }
 
 export function listDesignedEnemies(): EnemyDef[] {
-  return catalog.enemies as EnemyDef[];
+  return enemies;
 }
 
 export function getEnemy(id: EnemyId): EnemyDef {
