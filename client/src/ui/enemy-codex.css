@@ -274,6 +274,10 @@
   display: block;
   width: 220px;
   height: 220px;
+  min-width: 220px;
+  min-height: 220px;
+  flex-shrink: 0;
+  font-family: inherit;
 }
 
 .codex__stats {

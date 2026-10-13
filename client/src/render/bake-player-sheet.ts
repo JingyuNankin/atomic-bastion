@@ -152,6 +152,19 @@ export function bakePlayerSheet(): HTMLCanvasElement {
   return bakeBoxSheet(playerBoxes());
 }
 
+export function bakeDirection(
+  boxes: Box[],
+  direction: Direction,
+  frame: { width: number; height: number } = PLAYER_CELL,
+): HTMLCanvasElement {
+  const renderer = createBoxGlRenderer(boxes);
+  try {
+    return renderer.render(YAW[direction], frame.width, frame.height);
+  } finally {
+    renderer.destroy();
+  }
+}
+
 export function bakeFittedSprite(
   boxes: Box[],
   size: number,

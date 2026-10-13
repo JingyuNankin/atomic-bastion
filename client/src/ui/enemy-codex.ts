@@ -1,13 +1,11 @@
 import { listEnemies, type EnemyDef, type EnemyId } from '../enemies/catalog';
-import { rateEnemy, type RadarAxis } from '../enemies/ratings';
+import { rateEnemy } from '../enemies/ratings';
 import { PX_PER_UNIT } from '../game/units';
 import { gaitCell, sheetCell } from '../render/bake-player-sheet';
 import { HYENA_GAIT_CELL } from '../render/hyena-model';
+import { paintRadarChart } from './radar';
 import { starMarkup } from './seal';
 import './enemy-codex.css';
-
-const INK = '#2c2418';
-const STAMP = '#a32020';
 
 export type EnemyCodex = {
   open: () => void;
@@ -189,10 +187,10 @@ function renderDetail(
   const axes = rateEnemy(enemy);
   const radarRow = document.createElement('div');
   radarRow.className = 'codex__radar-row';
-  const radar = document.createElement('canvas');
-  radar.className = 'codex__radar';
-  radar.setAttribute('aria-label', `${enemy.name}性能雷达`);
-  paintRadar(radar, axes);
+  const radar = paintRadarChart(axes, {
+    className: 'codex__radar',
+    label: `${enemy.name}性能雷达`,
+  });
 
   const stats = document.createElement('div');
   stats.className = 'codex__stats';
@@ -240,89 +238,6 @@ function thumb(
   }
 
   return canvas;
-}
-
-function paintRadar(canvas: HTMLCanvasElement, axes: RadarAxis[]): void {
-  const size = 220;
-  canvas.width = size;
-  canvas.height = size;
-  const context = canvas.getContext('2d');
-
-  if (!context || axes.length < 3) {
-    return;
-  }
-
-  const cx = size / 2;
-  const cy = size / 2;
-  const maxRadius = 68;
-  const count = axes.length;
-  const angleAt = (index: number) => -Math.PI / 2 + (index * Math.PI * 2) / count;
-  const pointAt = (index: number, radius: number) => {
-    const angle = angleAt(index);
-    return {
-      x: cx + Math.cos(angle) * radius,
-      y: cy + Math.sin(angle) * radius,
-    };
-  };
-
-  context.clearRect(0, 0, size, size);
-  context.lineJoin = 'round';
-  context.strokeStyle = 'rgba(44, 36, 24, 0.28)';
-  context.lineWidth = 1;
-
-  for (const step of [0.25, 0.5, 0.75, 1]) {
-    tracePolygon(context, count, (index) => pointAt(index, maxRadius * step));
-    context.stroke();
-  }
-
-  for (let index = 0; index < count; index += 1) {
-    const tip = pointAt(index, maxRadius);
-    context.beginPath();
-    context.moveTo(cx, cy);
-    context.lineTo(tip.x, tip.y);
-    context.stroke();
-  }
-
-  tracePolygon(context, count, (index) => {
-    const radius = maxRadius * (Math.min(100, Math.max(0, axes[index]?.value ?? 0)) / 100);
-    return pointAt(index, radius);
-  });
-  context.globalAlpha = 0.28;
-  context.fillStyle = STAMP;
-  context.fill();
-  context.globalAlpha = 1;
-  context.strokeStyle = STAMP;
-  context.lineWidth = 1.5;
-  context.stroke();
-
-  context.fillStyle = INK;
-  context.font = '12px "PingFang SC", "Microsoft YaHei", sans-serif';
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-
-  axes.forEach((axis, index) => {
-    const label = pointAt(index, maxRadius + 18);
-    context.fillText(axis.label, label.x, label.y);
-  });
-}
-
-function tracePolygon(
-  context: CanvasRenderingContext2D,
-  count: number,
-  pointAt: (index: number) => { x: number; y: number },
-): void {
-  context.beginPath();
-
-  for (let index = 0; index < count; index += 1) {
-    const point = pointAt(index);
-    if (index === 0) {
-      context.moveTo(point.x, point.y);
-    } else {
-      context.lineTo(point.x, point.y);
-    }
-  }
-
-  context.closePath();
 }
 
 function formatUnits(pixels: number): string {

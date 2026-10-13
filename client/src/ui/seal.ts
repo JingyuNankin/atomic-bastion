@@ -3,16 +3,20 @@ const STAR =
 
 export function sealMarkup(
   className = 'seal',
-  options?: { id?: string; legend?: string },
+  options?: { id?: string; legend?: string; inked?: boolean },
 ): string {
   const arcId = options?.id ?? 'seal-arc';
   const legend = options?.legend ?? 'ОТР-3 · 绝密 · 铁脉 · BUNKER-72 ·';
+  const wash = options?.inked
+    ? '<circle cx="60" cy="60" r="51" fill="currentColor" fill-opacity="0.22"/>'
+    : '';
 
   return `
     <svg class="${className}" viewBox="0 0 120 120" aria-hidden="true">
-      <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" stroke-width="3"/>
-      <circle cx="60" cy="60" r="48" fill="none" stroke="currentColor" stroke-width="1.2"/>
-      <circle cx="60" cy="60" r="34" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      ${wash}
+      <circle cx="60" cy="60" r="56" fill="none" stroke="currentColor" stroke-width="3.2"/>
+      <circle cx="60" cy="60" r="48" fill="none" stroke="currentColor" stroke-width="1.15"/>
+      <circle cx="60" cy="60" r="33" fill="none" stroke="currentColor" stroke-width="1.15"/>
       <defs>
         <path id="${arcId}" d="M60 17.5 a42.5 42.5 0 1 1 0 85 a42.5 42.5 0 1 1 0 -85"/>
       </defs>

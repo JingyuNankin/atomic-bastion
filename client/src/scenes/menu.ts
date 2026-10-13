@@ -10,7 +10,7 @@ import {
   type OperativeDef,
   type OperativeId,
 } from '../operatives/catalog';
-import { bakeBoxSheet, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
+import { bakeBoxSheet, bakeDirection, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
 import { operativeBoxes } from '../render/operative-model';
 import { renderOperativeDossier, renderReservedDossier } from '../ui/operative-dossier';
 import '../ui/menu.css';
@@ -172,13 +172,6 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
             <h3 class="menu__picker-col-title">名册</h3>
             <div class="menu__picker-list"></div>
           </section>
-          <section class="menu__picker-col menu__picker-col--stage">
-            <h3 class="menu__picker-col-title">体模</h3>
-            <div class="menu__stage">
-              <canvas class="menu__stage-canvas" aria-hidden="true"></canvas>
-              <p class="menu__stage-caption"></p>
-            </div>
-          </section>
           <section class="menu__picker-col">
             <h3 class="menu__picker-col-title">档案</h3>
             <div class="menu__dossier"></div>
@@ -208,9 +201,6 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
   const pickerBackdrop = overlay.querySelector('.menu__picker-backdrop');
   const pickerConfirm = overlay.querySelector('.menu__picker-confirm');
   const pickerCancel = overlay.querySelector('.menu__picker-cancel');
-  const stage = overlay.querySelector('.menu__stage');
-  const stageCanvas = overlay.querySelector('.menu__stage-canvas');
-  const stageCaption = overlay.querySelector('.menu__stage-caption');
   const dossier = overlay.querySelector('.menu__dossier');
 
   if (
@@ -231,19 +221,19 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
     !(pickerBackdrop instanceof HTMLElement) ||
     !(pickerConfirm instanceof HTMLButtonElement) ||
     !(pickerCancel instanceof HTMLButtonElement) ||
-    !(stage instanceof HTMLElement) ||
-    !(stageCanvas instanceof HTMLCanvasElement) ||
-    !(stageCaption instanceof HTMLElement) ||
     !(dossier instanceof HTMLElement)
   ) {
     throw new Error('Missing menu order sheet');
   }
 
   const sheets = new Map<OperativeId, HTMLCanvasElement>();
+  const portraits = new Map<OperativeId, HTMLCanvasElement>();
 
   try {
     for (const operative of listOperatives()) {
-      sheets.set(operative.id, bakeBoxSheet(operativeBoxes(operative.model)));
+      const boxes = operativeBoxes(operative.model);
+      sheets.set(operative.id, bakeBoxSheet(boxes));
+      portraits.set(operative.id, bakeDirection(boxes, 'sw'));
     }
   } catch (error) {
     console.warn('Could not render operative portraits.', error);
@@ -393,21 +383,18 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
 
     if (draft.kind === 'operative') {
       const operative = getOperative(draft.id);
-      const sheet = sheets.get(operative.id);
-      stage.classList.remove('is-empty');
-      if (sheet) {
-        paintSouth(stageCanvas, sheet);
-      }
-      stageCaption.textContent = `${operative.code} · 南向`;
       renderOperativeDossier(dossier, operative);
+      const portrait = portraits.get(operative.id);
+      const photo = dossier.querySelector('.menu__photo-canvas');
+      if (portrait && photo instanceof HTMLCanvasElement) {
+        paintPortrait(photo, portrait);
+      }
       pickerConfirm.disabled = false;
       pickerConfirm.textContent = '按此指派';
       return;
     }
 
     const slot = RESERVED_SLOTS.find((item) => item.id === draft.id);
-    stage.classList.add('is-empty');
-    stageCaption.textContent = '栏位留空';
     renderReservedDossier(dossier, slot?.title ?? '留空', slot?.detail ?? '');
     pickerConfirm.disabled = true;
     pickerConfirm.textContent = '尚未开放';
@@ -498,6 +485,20 @@ function escapeHtml(value: string): string {
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;');
+}
+
+function paintPortrait(canvas: HTMLCanvasElement, portrait: HTMLCanvasElement): void {
+  canvas.width = portrait.width;
+  canvas.height = portrait.height;
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    return;
+  }
+
+  context.imageSmoothingEnabled = false;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(portrait, 0, 0);
 }
 
 function paintSouth(canvas: HTMLCanvasElement, sheet: HTMLCanvasElement): void {
