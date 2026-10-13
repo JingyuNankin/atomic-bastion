@@ -11,11 +11,14 @@ import {
   type Arena,
   type Player,
 } from './player';
+import type { Projectile } from './projectile';
 import { gaitCell, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
 import type { WalkPose } from '../render/gait';
 import { HYENA_CELL, HYENA_GAIT_CELL } from '../render/hyena-model';
 import { THEME } from '../ui/theme';
 
+const ARC_BOLT = 'proj-arc-bolt';
+const ARC_BOLT_SPEED = px(24);
 const LUNGE_TIME = 0.14;
 const LUNGE_DISTANCE = px(1);
 const BLAST_TIME = 0.32;
@@ -42,6 +45,8 @@ export type Enemy = {
   blast: number;
   motionTime: number;
   stepLift: number;
+  /** 远程预警已进行的时间，秒。 */
+  aim: number;
   walk: WalkPose;
   entered: boolean;
 };
@@ -68,6 +73,7 @@ export function createEnemy(kind: EnemyId, x: number, y: number): Enemy {
     blast: 0,
     motionTime: Math.random() * 1.8,
     stepLift: 0,
+    aim: 0,
     walk: 'stand',
     entered: false,
   };
@@ -78,6 +84,7 @@ export function createEnemy(kind: EnemyId, x: number, y: number): Enemy {
 export function updateEnemies(
   enemies: Enemy[],
   player: Player,
+  projectiles: Projectile[],
   dt: number,
   arena: Arena,
 ): void {
@@ -125,6 +132,8 @@ export function updateEnemies(
       if (enemy.attackCooldown <= 0 && player.hp > 0 && dist > 0) {
         bite(enemy, player, arena);
       }
+    } else if (def.attack === 'ranged') {
+      steerArc(enemy, player, projectiles, dist, dx, dy, dt);
     } else if (enemy.kind === 'e01-hyena' && dist > 0) {
       stepHyena(enemy, dx, dy, dist, dt);
     } else if (dist > 0) {
@@ -259,6 +268,10 @@ export function drawEnemy(
     context.restore();
   }
 
+  if (enemy.aim > 0) {
+    drawArcTell(context, enemy);
+  }
+
   if (enemy.fuse > 0 && warningLamp(enemy)) {
     const nose = unitFacing(enemy.facing);
     const lamp = enemy.fuse < def.attackInterval * 0.35 ? THEME.hpFill : THEME.stamp;
@@ -294,6 +307,105 @@ function stepHyena(enemy: Enemy, dx: number, dy: number, dist: number, dt: numbe
   enemy.stepLift = 0;
   const cycleIndex = Math.floor(enemy.motionTime / cycle);
   enemy.walk = cycleIndex % 2 === 0 ? 'left' : 'right';
+}
+
+function steerArc(
+  enemy: Enemy,
+  player: Player,
+  projectiles: Projectile[],
+  dist: number,
+  dx: number,
+  dy: number,
+  dt: number,
+): void {
+  const def = getEnemy(enemy.kind);
+  enemy.walk = 'stand';
+  enemy.stepLift = 0;
+
+  if (dist <= 0 || player.hp <= 0) {
+    enemy.aim = 0;
+    return;
+  }
+
+  if (dist > def.attackRange) {
+    enemy.aim = 0;
+    enemy.x += (dx / dist) * def.speed * dt;
+    enemy.y += (dy / dist) * def.speed * dt;
+    return;
+  }
+
+  if (enemy.attackCooldown > 0) {
+    enemy.aim = 0;
+    return;
+  }
+
+  const windup = def.windup ?? 0.85;
+  enemy.aim += dt;
+
+  if (enemy.aim < windup) {
+    return;
+  }
+
+  enemy.aim = 0;
+  enemy.attackCooldown = def.attackInterval;
+  fireArc(enemy, projectiles);
+}
+
+function fireArc(enemy: Enemy, projectiles: Projectile[]): void {
+  const def = getEnemy(enemy.kind);
+  const dir = unitFacing(enemy.facing);
+  const muzzle = arcMuzzle(enemy);
+
+  projectiles.push({
+    x: muzzle.x,
+    y: muzzle.y,
+    vx: dir.x * ARC_BOLT_SPEED,
+    vy: dir.y * ARC_BOLT_SPEED,
+    projectileId: ARC_BOLT,
+    damage: def.damage,
+    knockback: def.attackKnockback,
+    side: 'enemy',
+  });
+}
+
+function arcMuzzle(enemy: Enemy): { x: number; y: number } {
+  const def = getEnemy(enemy.kind);
+  const dir = unitFacing(enemy.facing);
+  const reach = px(2.1);
+  return {
+    x: enemy.x + dir.x * reach,
+    y: enemy.y - def.hitLift + dir.y * reach * 0.5,
+  };
+}
+
+function drawArcTell(context: CanvasRenderingContext2D, enemy: Enemy): void {
+  const def = getEnemy(enemy.kind);
+  const windup = def.windup ?? 0.85;
+  const progress = Math.min(1, enemy.aim / windup);
+  const dir = unitFacing(enemy.facing);
+  const muzzle = arcMuzzle(enemy);
+  const length = px(2.5) + px(7) * progress;
+
+  context.save();
+  context.strokeStyle = progress > 0.72 ? THEME.stamp : THEME.brass;
+  context.globalAlpha = 0.4 + progress * 0.55;
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(muzzle.x, muzzle.y);
+  context.lineTo(muzzle.x + dir.x * length, muzzle.y + dir.y * length);
+  context.stroke();
+
+  const blink = Math.floor(enemy.aim * (6 + progress * 12)) % 2 === 0;
+
+  if (blink || progress > 0.85) {
+    context.fillStyle = THEME.stamp;
+    context.globalAlpha = 0.45 + progress * 0.55;
+    context.beginPath();
+    context.arc(muzzle.x, muzzle.y, 3 + progress * 5, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  context.restore();
 }
 
 function bite(enemy: Enemy, player: Player, arena: Arena): void {

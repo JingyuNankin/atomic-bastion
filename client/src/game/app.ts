@@ -5,6 +5,7 @@ import { mountMenu } from '../scenes/menu';
 import { loadGameArt } from '../systems/game-art';
 import { createInput } from '../systems/input';
 import { WEAPON_SLOT_COUNT } from '../ui/hud';
+import { mountEnemyCodex } from '../ui/enemy-codex';
 import { mountPauseMenu } from '../ui/pause';
 import { mountPlayBar } from '../ui/play-bar';
 import { mountStubPanel } from '../ui/stub-panel';
@@ -40,6 +41,8 @@ export function startGame(root: HTMLElement): void {
   locker.setLoadout(loadout);
   world.setLoadout(loadout);
 
+  const codex = mountEnemyCodex(root);
+
   void loadGameArt()
     .then((art) => {
       world.setArt(art);
@@ -48,6 +51,7 @@ export function startGame(root: HTMLElement): void {
           listDesignedWeapons().map((weapon) => [weapon.id, art.weapons[weapon.id]?.icon]),
         ),
       );
+      codex.setSheets(art.enemies);
     })
     .catch((error: unknown) => {
       console.error(error);
@@ -61,6 +65,9 @@ export function startGame(root: HTMLElement): void {
       setPaused(false);
       locker.close();
       setScene('menu');
+    },
+    onCodex() {
+      codex.open();
     },
   });
 
@@ -123,6 +130,7 @@ export function startGame(root: HTMLElement): void {
 
     if (next !== 'play') {
       locker.close();
+      codex.close();
       closeStub();
       setPaused(false);
     }
@@ -143,6 +151,11 @@ export function startGame(root: HTMLElement): void {
 
     if (event.key === 'Escape') {
       event.preventDefault();
+      if (codex.isOpen()) {
+        codex.close();
+        return;
+      }
+
       if (locker.isOpen()) {
         locker.close();
         return;
@@ -266,6 +279,8 @@ export function startGame(root: HTMLElement): void {
     if (next) {
       locker.close();
       closeStub();
+    } else {
+      codex.close();
     }
 
     pauseMenu.setOpen(next && scene === 'play');

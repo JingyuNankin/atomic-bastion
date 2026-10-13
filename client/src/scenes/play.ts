@@ -82,6 +82,7 @@ export function createPlayWorld(): PlayWorld {
       enemies.push(
         createEnemy('e01-hyena', px(MAP_WIDTH) / 2, ARENA.top - px(3)),
         createEnemy('e02-drone', ARENA.right + px(4), px(MAP_HEIGHT) * 0.35),
+        createEnemy('e03-arc', ARENA.left - px(4), px(MAP_HEIGHT) * 0.62),
       );
     },
     equip(weaponId) {
@@ -93,8 +94,8 @@ export function createPlayWorld(): PlayWorld {
       updatePlayer(player, dt, axis, ARENA);
       updateCombat(combat, player, projectiles, dt, firing);
       updateProjectiles(projectiles, dt, ARENA);
-      updateEnemies(enemies, player, dt, ARENA);
-      resolveProjectileHits(projectiles, enemies, dt);
+      updateEnemies(enemies, player, projectiles, dt, ARENA);
+      resolveProjectileHits(projectiles, enemies, player, dt);
     },
     draw(context, width, height, _time) {
       context.fillStyle = THEME.soot;

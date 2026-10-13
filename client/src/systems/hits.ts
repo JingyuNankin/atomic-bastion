@@ -1,11 +1,17 @@
 import { enemyHitPoint, hurtEnemy, type Enemy } from '../entities/enemy';
 import type { Projectile } from '../entities/projectile';
+import type { Player } from '../entities/player';
+import { px } from '../game/units';
 import { getEnemy } from '../enemies/catalog';
 import { getProjectile } from '../weapons/catalog';
+
+const PLAYER_HIT_RADIUS = px(1.15);
+const PLAYER_CHEST = px(2.75);
 
 export function resolveProjectileHits(
   projectiles: Projectile[],
   enemies: Enemy[],
+  player: Player,
   dt: number,
 ): void {
   for (let i = projectiles.length - 1; i >= 0; i -= 1) {
@@ -13,7 +19,9 @@ export function resolveProjectileHits(
     const style = getProjectile(shot.projectileId).style;
     let remove = false;
 
-    if (style === 'grenade') {
+    if (shot.side === 'enemy') {
+      remove = strikePlayer(shot, player, dt);
+    } else if (style === 'grenade') {
       splashGrenade(shot, enemies);
     } else if (style === 'flame') {
       burnCone(shot, enemies);
@@ -27,6 +35,33 @@ export function resolveProjectileHits(
       projectiles.splice(i, 1);
     }
   }
+}
+
+function strikePlayer(shot: Projectile, player: Player, dt: number): boolean {
+  if (player.hp <= 0) {
+    return false;
+  }
+
+  const prevX = shot.x - shot.vx * dt;
+  const prevY = shot.y - shot.vy * dt;
+  const dist = distanceToSegment(
+    player.x,
+    player.y - PLAYER_CHEST,
+    prevX,
+    prevY,
+    shot.x,
+    shot.y,
+  );
+
+  if (dist > PLAYER_HIT_RADIUS) {
+    return false;
+  }
+
+  const length = Math.hypot(shot.vx, shot.vy) || 1;
+  player.hp = Math.max(0, player.hp - (shot.damage ?? 0));
+  player.x += (shot.vx / length) * (shot.knockback ?? 0);
+  player.y += (shot.vy / length) * (shot.knockback ?? 0);
+  return true;
 }
 
 function strikeKinetic(shot: Projectile, enemies: Enemy[], dt: number): boolean {

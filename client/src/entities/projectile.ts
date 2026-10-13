@@ -21,6 +21,8 @@ export type Projectile = {
   spin?: number;
   blastRadius?: number;
   damage?: number;
+  /** 缺省是玩家打出的。敌弹只打执行员。 */
+  side?: 'player' | 'enemy';
   knockback?: number;
   pierce?: number;
   hitInterval?: number;

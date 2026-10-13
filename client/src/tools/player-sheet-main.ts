@@ -10,6 +10,7 @@ import {
   sheetCell,
 } from '../render/bake-player-sheet';
 import { operativeBoxes } from '../render/operative-model';
+import { arcArmBoxes } from '../render/arc-arm-model';
 import { droneBoxes } from '../render/drone-model';
 import { HYENA_GAIT_CELL, HYENA_GAIT_ORTHO, hyenaBoxes } from '../render/hyena-model';
 import {
@@ -53,6 +54,7 @@ try {
   const composites: HTMLCanvasElement[] = [];
   const hyena = getEnemy('e01-hyena');
   const drone = getEnemy('e02-drone');
+  const arc = getEnemy('e03-arc');
 
   for (const operative of listOperatives()) {
     const sheet = sheets.get(operative.id);
@@ -79,6 +81,12 @@ try {
     `${drone.name} · ${drone.code}`,
     bakeBoxSheet(droneBoxes(), PLAYER_CELL),
     'e02-drone.png',
+  );
+  mountSheet(
+    gallery,
+    `${arc.name} · ${arc.code}`,
+    bakeBoxSheet(arcArmBoxes(), PLAYER_CELL),
+    'e03-arc.png',
   );
 
   for (const weapon of listDesignedWeapons()) {

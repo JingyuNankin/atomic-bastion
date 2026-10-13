@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "defaultWeaponId": "w01-pistol",
   "projectiles": [
     {
@@ -57,6 +57,14 @@
       "tint": "#6a4a28",
       "drawWidth": 26,
       "drawHeight": 12
+    },
+    {
+      "id": "proj-arc-bolt",
+      "name": "电弧弹",
+      "style": "slug",
+      "tint": "#c45a28",
+      "drawWidth": 22,
+      "drawHeight": 10
     },
     {
       "id": "proj-flame",

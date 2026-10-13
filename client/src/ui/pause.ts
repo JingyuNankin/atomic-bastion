@@ -3,6 +3,7 @@ import './pause.css';
 type PauseHandlers = {
   onResume: () => void;
   onMenu: () => void;
+  onCodex: () => void;
 };
 
 export type PauseMenu = {
@@ -28,6 +29,7 @@ export function mountPauseMenu(
           继续任务
           <kbd class="pause__key">Esc</kbd>
         </button>
+        <button type="button" class="pause__btn pause__codex">失控机械图鉴</button>
         <button type="button" class="pause__btn pause__menu">返回菜单</button>
         <button type="button" class="pause__btn pause__save" disabled>
           保存存档
@@ -38,11 +40,13 @@ export function mountPauseMenu(
   `;
 
   const resume = overlay.querySelector('.pause__resume');
+  const codex = overlay.querySelector('.pause__codex');
   const menu = overlay.querySelector('.pause__menu');
   const backdrop = overlay.querySelector('.pause__backdrop');
 
   if (
     !(resume instanceof HTMLButtonElement) ||
+    !(codex instanceof HTMLButtonElement) ||
     !(menu instanceof HTMLButtonElement) ||
     !(backdrop instanceof HTMLElement)
   ) {
@@ -53,6 +57,9 @@ export function mountPauseMenu(
 
   resume.addEventListener('click', () => {
     handlers.onResume();
+  });
+  codex.addEventListener('click', () => {
+    handlers.onCodex();
   });
   menu.addEventListener('click', () => {
     handlers.onMenu();

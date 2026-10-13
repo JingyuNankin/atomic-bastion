@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "enemies": [
     {
       "id": "e01-hyena",
@@ -52,6 +52,33 @@
       "hitRadius": 1.25,
       "hitLift": 3.3125,
       "bodyRadius": 1.125
+    },
+    {
+      "id": "e03-arc",
+      "name": "电弧臂",
+      "nameEn": "Arc Arm",
+      "code": "弧闸-6",
+      "role": "远程火力",
+      "blurb": "「弧闸-6」型固定电极。底盘走得很慢，枪口先亮一条铜线，线攒满才打出一发电弧。血比巡舱杂兵厚，射得却很稀。",
+      "enabled": true,
+      "tier": "射手",
+      "locomotion": "ground",
+      "hp": 54,
+      "speed": 3.5,
+      "cruiseSpeed": 3.5,
+      "attack": "ranged",
+      "attackName": "电弧",
+      "damage": 16,
+      "attackRange": 18,
+      "attackReach": 0,
+      "attackInterval": 2.4,
+      "windup": 0.85,
+      "attackKnockback": 1.25,
+      "blastRadius": 0,
+      "knockbackResist": 0.45,
+      "hitRadius": 1.6,
+      "hitLift": 2.5,
+      "bodyRadius": 1.4
     }
   ]
 }

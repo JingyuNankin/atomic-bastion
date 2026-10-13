@@ -19,6 +19,7 @@
 | --- | --- | --- |
 | e01-hyena | 机械鬣狗八向（WebGL 方块模型） | 运行时烘焙 |
 | e02-drone | 无人机八向（WebGL 方块模型） | 运行时烘焙 |
+| e03-arc | 电弧臂八向（WebGL 方块模型） | 运行时烘焙 |
 | — | 其余敌人精灵 | 待设计 |
 
 ## 武器与投射物
@@ -42,6 +43,7 @@
 | proj-grenade | 榴弹 | 待制作 |
 | proj-laser-beam | 激光束 | 待制作 |
 | proj-rocket | 火箭弹 | 待制作 |
+| proj-arc-bolt | 电弧弹 | WebGL 运行时烘焙 |
 | proj-flame | 火焰 | 待制作 |
 
 ## 场景 / UI

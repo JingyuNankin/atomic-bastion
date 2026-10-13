@@ -7,6 +7,7 @@ import {
   PLAYER_CELL,
 } from '../render/bake-player-sheet';
 import { operativeBoxes } from '../render/operative-model';
+import { arcArmBoxes } from '../render/arc-arm-model';
 import { droneBoxes } from '../render/drone-model';
 import {
   HYENA_GAIT_CELL,
@@ -104,6 +105,10 @@ function enemyBake(id: EnemyId): {
 
   if (id === 'e02-drone') {
     return { boxes: droneBoxes(), frame: PLAYER_CELL, ortho: PLAYER_ORTHO };
+  }
+
+  if (id === 'e03-arc') {
+    return { boxes: arcArmBoxes(), frame: PLAYER_CELL, ortho: PLAYER_ORTHO };
   }
 
   return null;

@@ -2,7 +2,7 @@ import catalog from '../../../docs/design/enemies.json';
 import { px } from '../game/units';
 
 export type EnemyId = string;
-export type AttackKind = 'melee' | 'suicide';
+export type AttackKind = 'melee' | 'suicide' | 'ranged';
 export type Locomotion = 'ground' | 'air';
 export type EnemyTier = '杂兵' | '射手' | '坦克';
 
@@ -25,6 +25,8 @@ export type EnemyDef = {
   attackRange: number;
   attackReach: number;
   attackInterval: number;
+  /** 远程攻击出手前的预警时间，秒。 */
+  windup?: number;
   attackKnockback: number;
   blastRadius: number;
   knockbackResist: number;
