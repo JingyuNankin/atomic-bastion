@@ -13,6 +13,7 @@ import {
 import { bakeBoxSheet, bakeDirection, PLAYER_CELL, sheetCell } from '../render/bake-player-sheet';
 import { operativeBoxes } from '../render/operative-model';
 import { renderOperativeDossier, renderReservedDossier } from '../ui/operative-dossier';
+import { paintRadarChart } from '../ui/radar';
 import '../ui/menu.css';
 import { sealMarkup, starMarkup } from '../ui/seal';
 
@@ -83,6 +84,21 @@ const ORDERS: Record<GameModeId, OrderCopy> = {
   },
 };
 
+const MODE_BLURB: Record<GameModeId, string> = {
+  survival: '进入隔离区，撑过更多轮次。',
+  defense: '守住主机舱与隔离闸门。',
+  collect: '回收记录与密级钥匙。',
+};
+
+const MODE_MARK: Record<GameModeId, string> = {
+  survival:
+    '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="9" r="4.2" fill="currentColor"/><path fill="currentColor" d="M15 46V28l-5.2-5.2 5.4-2L24 26.2 32.8 20.8l5.4 2L33 28v18h-5.2V33h-7.6v13z"/></svg>',
+  defense:
+    '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="currentColor" d="M24 4 8 11v13.5C8 34.2 14.6 41.4 24 45c9.4-3.6 16-10.8 16-20.5V11z"/><path fill="rgba(0,0,0,.28)" d="M22.2 16h3.6v8.2H34v3.6h-8.2V36h-3.6v-8.2H14v-3.6h8.2z"/></svg>',
+  collect:
+    '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="currentColor" d="M7 10h13.2L24 15.2H41V40H7z"/><path fill="rgba(0,0,0,.28)" d="M14 23h20v2.4H14zm0 6h16v2.4H14zm0 6h12v2.4H14z"/></svg>',
+};
+
 const RESERVED_SLOTS: ReservedSlot[] = [
   {
     id: 'custom',
@@ -100,23 +116,33 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
   const overlay = document.createElement('div');
   overlay.className = 'menu';
   overlay.innerHTML = `
-    <aside class="menu__rail">
-      <p class="menu__game-en">${starMarkup('star')}ATOMIC BASTION</p>
-      <p class="menu__game">原子堡垒</p>
-      <p class="menu__rail-kicker">封存设施 · 禁止外传</p>
-      <p class="menu__game-sub">BUNKER-72 · 铁脉</p>
+    <header class="menu__brand">
+      <div class="menu__brand-plate">
+        ${starMarkup('menu__brand-star')}
+        <div class="menu__brand-copy">
+          <p class="menu__brand-title">原子堡垒</p>
+          <p class="menu__brand-sub">ATOMIC BASTION</p>
+        </div>
+      </div>
+    </header>
+    <div class="menu__stage">
       <button type="button" class="menu__portrait" aria-haspopup="dialog" aria-controls="operative-picker">
         <canvas class="menu__portrait-canvas" aria-hidden="true"></canvas>
-        <span class="menu__portrait-label">更换执行员</span>
       </button>
-      <div class="menu__personnel">
-        <p class="menu__personnel-label">执行员档案 / 72—А</p>
-        <p class="menu__personnel-name"></p>
-        <p class="menu__personnel-role"></p>
-        <button type="button" class="menu__personnel-change">更换指派</button>
+      <div class="menu__side">
+        <div class="menu__personnel">
+          <p class="menu__personnel-label">执行员档案 / 72—А</p>
+          <p class="menu__personnel-name"></p>
+          <p class="menu__personnel-role"></p>
+          <button type="button" class="menu__personnel-change">更换执行员</button>
+        </div>
+        <div class="menu__stats" aria-label="执行员数值"></div>
       </div>
-      <nav class="menu__modes" aria-label="任务模式"></nav>
-    </aside>
+      <nav class="menu__modes" aria-label="任务模式">
+        <p class="menu__modes-label">${starMarkup('star')}选择模式</p>
+        <div class="menu__mode-row"></div>
+      </nav>
+    </div>
     <article class="menu__panel">
       <header class="menu__letterhead">
         <p class="menu__org-ru">ОТР-3</p>
@@ -184,12 +210,13 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
     </div>
   `;
 
-  const modesNav = overlay.querySelector('.menu__modes');
+  const modesNav = overlay.querySelector('.menu__mode-row');
   const portraitButton = overlay.querySelector('.menu__portrait');
   const portrait = overlay.querySelector('.menu__portrait-canvas');
   const personnelName = overlay.querySelector('.menu__personnel-name');
   const personnelRole = overlay.querySelector('.menu__personnel-role');
   const personnelChange = overlay.querySelector('.menu__personnel-change');
+  const stats = overlay.querySelector('.menu__stats');
   const orderNo = overlay.querySelector('.menu__order-no');
   const subject = overlay.querySelector('.menu__subject');
   const recipient = overlay.querySelector('.menu__recipient');
@@ -210,6 +237,7 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
     !(personnelName instanceof HTMLElement) ||
     !(personnelRole instanceof HTMLElement) ||
     !(personnelChange instanceof HTMLButtonElement) ||
+    !(stats instanceof HTMLElement) ||
     !(orderNo instanceof HTMLElement) ||
     !(subject instanceof HTMLElement) ||
     !(recipient instanceof HTMLElement) ||
@@ -321,15 +349,23 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
         button.classList.add('is-locked');
       }
 
+      const icon = document.createElement('span');
+      icon.className = 'menu__mode-icon';
+      icon.innerHTML = MODE_MARK[mode.id];
+
       const name = document.createElement('span');
       name.className = 'menu__mode-name';
       name.textContent = mode.name;
+
+      const blurb = document.createElement('span');
+      blurb.className = 'menu__mode-blurb';
+      blurb.textContent = MODE_BLURB[mode.id];
 
       const tag = document.createElement('span');
       tag.className = 'menu__mode-tag';
       tag.textContent = mode.available ? '可执行' : '未下达';
 
-      button.append(name, tag);
+      button.append(icon, name, blurb, tag);
       button.addEventListener('click', () => {
         selectedId = mode.id;
         render();
@@ -345,6 +381,14 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
     en.textContent = operative.codeEn.toUpperCase();
     personnelName.append(en);
     personnelRole.textContent = operative.role;
+    stats.replaceChildren(
+      paintRadarChart(operative.aptitude, {
+        className: 'menu__radar',
+        label: `${operative.code}数值`,
+        size: 176,
+        ink: '#ead7ae',
+      }),
+    );
     portraitButton.setAttribute(
       'aria-label',
       `更换执行员，当前为${operative.code}`,
@@ -421,7 +465,7 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
   });
   pickerCancel.addEventListener('click', () => {
     setPickerOpen(false);
-    portraitButton.focus();
+    personnelChange.focus();
   });
   pickerConfirm.addEventListener('click', () => {
     if (draft.kind !== 'operative') {
@@ -431,7 +475,7 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
     operativeId = draft.id;
     setPickerOpen(false);
     render();
-    portraitButton.focus();
+    personnelChange.focus();
   });
   overlay.addEventListener('keydown', (event) => {
     if (!pickerOpen || event.key !== 'Escape') {
@@ -440,7 +484,7 @@ export function mountMenu(root: HTMLElement, handlers: MenuHandlers): MenuView {
 
     event.preventDefault();
     setPickerOpen(false);
-    portraitButton.focus();
+    personnelChange.focus();
   });
 
   startButton.addEventListener('click', () => {

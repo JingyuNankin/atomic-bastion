@@ -8,7 +8,7 @@ export type RadarPoint = {
 
 export function paintRadarChart(
   axes: RadarPoint[],
-  options: { className: string; label: string; size?: number },
+  options: { className: string; label: string; size?: number; ink?: string },
 ): SVGSVGElement {
   const size = options.size ?? 220;
   const svg = svgEl('svg', {
@@ -36,7 +36,11 @@ export function paintRadarChart(
       y: cy + Math.sin(angle) * radius,
     };
   };
-  const ring = 'rgba(44, 36, 24, 0.28)';
+  const ink = options.ink;
+  const ring = ink ?? 'rgba(44, 36, 24, 0.28)';
+  const ringOpacity = ink ? '0.55' : '1';
+  const value = ink ?? STAMP;
+  const labelInk = ink ?? INK;
 
   for (const step of [0.25, 0.5, 0.75, 1]) {
     svg.append(
@@ -44,6 +48,7 @@ export function paintRadarChart(
         points: polygonPoints(count, (index) => pointAt(index, maxRadius * step)),
         fill: 'none',
         stroke: ring,
+        'stroke-opacity': ringOpacity,
         'stroke-width': '1',
         'stroke-linejoin': 'round',
       }),
@@ -59,6 +64,7 @@ export function paintRadarChart(
         x2: String(tip.x),
         y2: String(tip.y),
         stroke: ring,
+        'stroke-opacity': ringOpacity,
         'stroke-width': '1',
       }),
     );
@@ -70,9 +76,9 @@ export function paintRadarChart(
         const radius = maxRadius * (Math.min(100, Math.max(0, axes[index]?.value ?? 0)) / 100);
         return pointAt(index, radius);
       }),
-      fill: STAMP,
+      fill: value,
       'fill-opacity': '0.28',
-      stroke: STAMP,
+      stroke: value,
       'stroke-width': '1.5',
       'stroke-linejoin': 'round',
     }),
@@ -85,7 +91,7 @@ export function paintRadarChart(
       y: String(labelAt.y),
       'text-anchor': 'middle',
       'dominant-baseline': 'central',
-      fill: INK,
+      fill: labelInk,
       'font-size': '12',
     });
     label.textContent = axis.label;
